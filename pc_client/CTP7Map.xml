@@ -2,5 +2,5 @@
 <layer1_hw_config>
 	<phi_config phi="0"><board_address>eagle30</board_address></phi_config>
 	<phi_config phi="1"><board_address>eagle31</board_address></phi_config>
-	<phi_config phi="2"><board_address>eagle32</board_address></phi_config>
+	<phi_config phi="2"><board_address>eagle25</board_address></phi_config>
 </layer1_hw_config>
