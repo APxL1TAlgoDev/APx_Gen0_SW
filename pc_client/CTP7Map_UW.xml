@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<layer1_hw_config>
+	<phi_config phi="0"><board_address>eagle65</board_address></phi_config>
+	<phi_config phi="1"><board_address>eagle54</board_address></phi_config>
+	<phi_config phi="2"><board_address>eagle50</board_address></phi_config>
+</layer1_hw_config>
