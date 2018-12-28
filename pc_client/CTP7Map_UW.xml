@@ -3,4 +3,11 @@
 	<phi_config phi="0"><board_address>eagle65</board_address></phi_config>
 	<phi_config phi="1"><board_address>eagle54</board_address></phi_config>
 	<phi_config phi="2"><board_address>eagle50</board_address></phi_config>
+	<phi_config phi="3"><board_address>eagle46</board_address></phi_config>
+	<phi_config phi="4"><board_address>eagle43</board_address></phi_config>
+	<phi_config phi="5"><board_address>eagle49</board_address></phi_config>
+	<phi_config phi="6"><board_address>eagle40</board_address></phi_config>
+</layer1_hw_config>
+</layer1_hw_config>
+</layer1_hw_config>
 </layer1_hw_config>

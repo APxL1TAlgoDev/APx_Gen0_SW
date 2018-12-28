@@ -99,9 +99,9 @@ int main(int argc, char *argv[]) {
 
 	for (int link = 0; link < 48; link++)
 	{
-		rc = card->setInputLinkBuffer(link, input_data[link].data);
+		rc = card->setOutputLinkBuffer(link, input_data[link].data);
         if (rc == false) {
-             std::cout << "setInputLinkBuffer fails for link " << link << std::endl;
+             std::cout << "setOutputLinkBuffer fails for link " << link << std::endl;
              return -1;
         }
 	}

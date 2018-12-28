@@ -19,7 +19,10 @@ const std::string data_path = "data";
 
 int main(int argc, char *argv[])
 {
-	std::vector<CTP7AlgoClient*> cards;
+
+    bool rc; // RPC return code
+    
+    std::vector<CTP7AlgoClient*> cards;
 
 	int phi = atoi(argv[1]);
 
@@ -31,7 +34,8 @@ int main(int argc, char *argv[])
 	}
 	catch (std::runtime_error &e)
 	{
-		printf("Couldnt connect to phi %d: %s\n", phi, e.what());
+        std::cout << "Couldnt connect to phi: " << phi <<  e.what() << std::endl;
+        return -1;
 	}
 
 	// Request RX buffer capture
@@ -42,13 +46,17 @@ int main(int argc, char *argv[])
 	for (int link = 0; link < 48; link++)
 	{
 		// download RX BRAMs
-		card->getInputLinkBuffer(link, input_link_data[link]);
+		rc = card->getInputLinkBuffer(link, input_link_data[link]);
+        if (rc == false) {
+           std::cout << "getInputLinkBuffer fails for link " << link << std::endl;
+           return -1;
+        }   
 	}
 	
 	FILE *fd = fopen((data_path + "/" +  argv[2]).c_str(), "w");
 	if (!fd)
 	{
-		printf("Error writing output file.\n");
+        std::cout << "Error writing output file." << std::endl;
 		return -1;
 	}
 

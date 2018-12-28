@@ -1,6 +1,6 @@
 CCOPTS = -fPIC -ggdb
 
-all: lib  download_inputs download_outputs upload_inputs card_config layer1_config layer2_config
+all: lib  download_inputs download_outputs upload_inputs upload_outputs  card_config layer1_config layer2_config
 
 lib: libCTP7AlgoClient.so
 
@@ -20,6 +20,9 @@ download_outputs: download_outputs.cpp libCTP7AlgoClient.so CTP7AlgoClient.hh rp
 	g++ $(CCOPTS) -o $@ $< -I. -L. -lCTP7AlgoClient -Irpcsvc_client_dev -Lrpcsvc_client_dev -lwiscrpcsvc
 
 upload_inputs: upload_inputs.cpp libCTP7AlgoClient.so CTP7AlgoClient.hh rpcsvc_client_dev/wiscrpcsvc.h
+	g++ $(CCOPTS) -o $@ $< -I. -L. -lCTP7AlgoClient -Irpcsvc_client_dev -Lrpcsvc_client_dev -lwiscrpcsvc
+
+upload_outputs: upload_outputs.cpp libCTP7AlgoClient.so CTP7AlgoClient.hh rpcsvc_client_dev/wiscrpcsvc.h
 	g++ $(CCOPTS) -o $@ $< -I. -L. -lCTP7AlgoClient -Irpcsvc_client_dev -Lrpcsvc_client_dev -lwiscrpcsvc
 
 libCTP7AlgoClient.so: CTP7AlgoClient.o tinyxml2.o
