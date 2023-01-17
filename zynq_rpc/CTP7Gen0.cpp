@@ -390,7 +390,7 @@ void getModuleBuildInfo(const RPCMsg *request, RPCMsg *response)
 }
 
 extern "C" {
-	const char *module_version_key = "CTP7Gen0 v1.1.0";
+	const char *module_version_key = "S3_Summ v1.1.0";
 	int module_activity_color = 5;
 	void module_init(ModuleManager *modmgr)
 	{
@@ -401,27 +401,27 @@ extern "C" {
 			return;
 		}
 
-		modmgr->register_method("CTP7Gen0", "ping", ping);
-		modmgr->register_method("CTP7Gen0", "hardReset", hardReset);
+		modmgr->register_method("S3_Summ", "ping", ping);
+		modmgr->register_method("S3_Summ", "hardReset", hardReset);
 
-		modmgr->register_method("CTP7Gen0", "getInputLinkBuffer", getInputLinkBuffer);
-		modmgr->register_method("CTP7Gen0", "setInputLinkBuffer", setInputLinkBuffer);
-		modmgr->register_method("CTP7Gen0", "getOutputLinkBuffer", getOutputLinkBuffer);
-		modmgr->register_method("CTP7Gen0", "setOutputLinkBuffer", setOutputLinkBuffer);
+		modmgr->register_method("S3_Summ", "getInputLinkBuffer", getInputLinkBuffer);
+		modmgr->register_method("S3_Summ", "setInputLinkBuffer", setInputLinkBuffer);
+		modmgr->register_method("S3_Summ", "getOutputLinkBuffer", getOutputLinkBuffer);
+		modmgr->register_method("S3_Summ", "setOutputLinkBuffer", setOutputLinkBuffer);
 		
-		modmgr->register_method("CTP7Gen0", "setTxPower", setTxPower);
-		modmgr->register_method("CTP7Gen0", "configRefClk", configRefClk);
-		modmgr->register_method("CTP7Gen0", "configMGTs", configMGTs);
+		modmgr->register_method("S3_Summ", "setTxPower", setTxPower);
+		modmgr->register_method("S3_Summ", "configRefClk", configRefClk);
+		modmgr->register_method("S3_Summ", "configMGTs", configMGTs);
 
-		modmgr->register_method("CTP7Gen0", "algoReset", algoReset);
-		modmgr->register_method("CTP7Gen0", "maskRXLink", maskRXLink);
-		modmgr->register_method("CTP7Gen0", "alignInputLinks", alignInputLinks);
-		modmgr->register_method("CTP7Gen0", "configureRXLinkBuffer", configureRXLinkBuffer);
-		modmgr->register_method("CTP7Gen0", "configureTXLinkBuffer", configureTXLinkBuffer);
-		modmgr->register_method("CTP7Gen0", "reqRXLinkBufferCapture", reqRXLinkBufferCapture);
-		modmgr->register_method("CTP7Gen0", "reqTXLinkBufferCapture", reqTXLinkBufferCapture);
+		modmgr->register_method("S3_Summ", "algoReset", algoReset);
+		modmgr->register_method("S3_Summ", "maskRXLink", maskRXLink);
+		modmgr->register_method("S3_Summ", "alignInputLinks", alignInputLinks);
+		modmgr->register_method("S3_Summ", "configureRXLinkBuffer", configureRXLinkBuffer);
+		modmgr->register_method("S3_Summ", "configureTXLinkBuffer", configureTXLinkBuffer);
+		modmgr->register_method("S3_Summ", "reqRXLinkBufferCapture", reqRXLinkBufferCapture);
+		modmgr->register_method("S3_Summ", "reqTXLinkBufferCapture", reqTXLinkBufferCapture);
 		
-		modmgr->register_method("CTP7Gen0", "getModuleBuildInfo", getModuleBuildInfo);
+		modmgr->register_method("S3_Summ", "getModuleBuildInfo", getModuleBuildInfo);
 	}
 }
 

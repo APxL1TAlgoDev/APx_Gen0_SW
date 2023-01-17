@@ -95,31 +95,27 @@ namespace CTP7Gen0RegMap {
 	/////////////////////////////////////////////////////////////////////
 
 	
-	const int NUM_OF_RX_LINKS = 48;
-	const int NUM_OF_TX_LINKS = 48;
+	const int NUM_OF_RX_LINKS = 36;
+	const int NUM_OF_TX_LINKS = 2;
 
 	// Channel to Channel (BRAM) Offset
 	
 	const uint32_t CH_TO_CH_REG_OFFSET = 0x4;		
 	const uint32_t BRAM_LINK_OFFSET = 0x1000;
 
-	const uint32_t INPUT_BRAM_0   = 0x70000000;   // RX link 0
+	const uint32_t INPUT_BRAM_0   = 0x61000000;   // RX link 0
 
-	const uint32_t OUTPUT_BRAM_0  = 0x71000000;   // TX link 0
+	const uint32_t OUTPUT_BRAM_0  = 0x61060000;   // TX link 0
 
 	/////////////////////////////////////////////////////////////////////
 
 	// board vs algo RX link mapping	
-	const int RXLinkMap[48] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+	const int RXLinkMap[36] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
 				   12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
-				   24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
-				   44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55}; 
+				   46,48, 54, 55, 67, 68, 69, 71, 72, 73,75,77}; 
 
 	// board vs algo TX link mapping	
-	const int TXLinkMap[48] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-				   12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
-				   24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
-				   52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63}; 
+	const int TXLinkMap[2] = {0, 1}; 
 };
 
 #endif

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <iostream>
 #include <stdexcept>
 #include <wiscrpcsvc.h>
 #include "CTP7AlgoClient.hh"
@@ -18,8 +19,8 @@
 
 using namespace wisc;
 
-static const std::string module_name = "CTP7Gen0";
-static const std::string module_key = "CTP7Gen0 v1.1.0";
+static const std::string module_name = "S3_Summ";
+static const std::string module_key = "S3_Summ v1.1.0";
 
 #define RPC_CATCH_RETURN catch (wisc::RPCSvc::RPCException &e) {  return false; }
 
@@ -196,6 +197,8 @@ bool CTP7AlgoClient::reqRXLinkBufferCapture(void)
 
 bool CTP7AlgoClient::reqTXLinkBufferCapture(void)
 {
+
+	std::cout << "calling here  TXLinkBuffercapture "  << std::endl;
 	GENERIC_CALL(RPCMsg(module_name + ".reqTXLinkBufferCapture"));
 }
 
@@ -222,6 +225,7 @@ bool CTP7AlgoClient::getInputLinkBuffer(int link, std::vector<uint32_t> &selecte
 
 bool CTP7AlgoClient::setInputLinkBuffer( int link, const std::vector<uint32_t> &selectedData)
 {
+	
 	GENERIC_CALL(RPCMsg(module_name + ".setInputLinkBuffer")
 	             .set_word("link", link)
 	             .set_word_array("selectedData", selectedData)
@@ -250,4 +254,3 @@ bool CTP7AlgoClient::getModuleBuildInfo(std::string &value)
 {
 	TYPE_GENERIC_CALL(string, value, RPCMsg(module_name + ".getModuleBuildInfo"));
 }
-

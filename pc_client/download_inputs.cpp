@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 
 	std::map<int, std::vector<uint32_t> > input_link_data;
 
-	for (int link = 0; link < 48; link++)
+	for (int link = 0; link < 36; link++)
 	{
 		// download RX BRAMs
 		rc = card->getInputLinkBuffer(link, input_link_data[link]);
@@ -61,24 +61,26 @@ int main(int argc, char *argv[])
 	}
 
 	fprintf(fd, "===================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================== \n");
-	fprintf(fd, "WordCnt             LINK_00               LINK_01               LINK_02               LINK_03               LINK_04               LINK_05               LINK_06               LINK_07               LINK_08               LINK_09               LINK_10               LINK_11               LINK_12               LINK_13               LINK_14               LINK_15               LINK_16               LINK_17               LINK_18               LINK_19               LINK_20               LINK_21               LINK_22               LINK_23               LINK_24               LINK_25               LINK_26               LINK_27               LINK_28               LINK_29               LINK_30               LINK_31               LINK_32               LINK_33               LINK_34               LINK_35               LINK_36               LINK_37               LINK_38               LINK_39               LINK_40               LINK_41               LINK_42               LINK_43               LINK_44               LINK_45               LINK_46               LINK_47 \n");
+	fprintf(fd, "WordCnt             LINK_00               LINK_01               LINK_02               LINK_03               LINK_04               LINK_05               LINK_06               LINK_07               LINK_08               LINK_09               LINK_10               LINK_11               LINK_12               LINK_13               LINK_14               LINK_15               LINK_16               LINK_17               LINK_18               LINK_19               LINK_20               LINK_21               LINK_22               LINK_23               LINK_24               LINK_25               LINK_26               LINK_27               LINK_28               LINK_29               LINK_30               LINK_31               LINK_32               LINK_33               LINK_34               LINK_35              \n");
 	fprintf(fd, "#BeginData\n");
 
 	uint32_t word32_lsw, word32_msw;
 	uint64_t word64;
 
-	for (int word = 0; word < 512; word++)
+	for (int word = 0; word < 1024; word++)
 	{
 		fprintf(fd, "0x%04x   ", word);
-		for (int link = 0; link < 48; link++)
+		for (int link = 0; link < 36; link++)
 		{
-			word32_lsw = input_link_data[link][word*2];
-			word32_msw = input_link_data[link][word*2+1];
+		         word32_lsw = input_link_data[link][word];
+		    	//word32_lsw = input_link_data[link][word*2];
+			 // word32_msw = input_link_data[link][word*2+1];
 
-			word64 = word32_lsw;
-			word64 |= (uint64_t)word32_msw << 32;
+			//word64 = word32_lsw;
+			//word64 |= (uint64_t)word32_msw << 32;
 
-			fprintf(fd, "0x%016llx    ", word64);
+			//fprintf(fd, "0x%016llx    ", word64);
+			fprintf(fd, "0x%01611x    ", word32_lsw);
 		}
 		fprintf(fd, "\n");
 	}
