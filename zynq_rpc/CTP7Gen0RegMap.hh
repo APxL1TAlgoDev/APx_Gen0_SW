@@ -105,14 +105,14 @@ namespace CTP7Gen0RegMap {
 
 	const uint32_t INPUT_BRAM_0   = 0x61000000;   // RX link 0
 
-	const uint32_t OUTPUT_BRAM_0  = 0x61060000;   // TX link 0
+	const uint32_t OUTPUT_BRAM_0  = 0x61018000;   // TX link 0
 
 	/////////////////////////////////////////////////////////////////////
 
 	// board vs algo RX link mapping	
 	const int RXLinkMap[36] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
 				   12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
-				   46,48, 54, 55, 67, 68, 69, 71, 72, 73,75,77}; 
+				   24,25,26,27,28,29,30,31, 32, 33, 34, 35}; 
 
 	// board vs algo TX link mapping	
 	const int TXLinkMap[2] = {0, 1}; 

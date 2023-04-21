@@ -130,7 +130,7 @@ void setTxPower(const RPCMsg *request, RPCMsg *response)
 void configRefClk(const RPCMsg *request, RPCMsg *response)
 {
 
-       int ret = system("clockinit 250 250 A0 A0 A0 A0 &>/dev/null");
+       int ret = system("clockinit 320 160  B1 A0 A0 B1 &>/dev/null");
 	
 	if (WEXITSTATUS(ret) != 0)
 	{
@@ -409,13 +409,13 @@ extern "C" {
 		modmgr->register_method("S3_Summ", "getOutputLinkBuffer", getOutputLinkBuffer);
 		modmgr->register_method("S3_Summ", "setOutputLinkBuffer", setOutputLinkBuffer);
 		
-		modmgr->register_method("S3_Summ", "setTxPower", setTxPower);
-		modmgr->register_method("S3_Summ", "configRefClk", configRefClk);
-		modmgr->register_method("S3_Summ", "configMGTs", configMGTs);
+//		modmgr->register_method("S3_Summ", "setTxPower", setTxPower);
+//		modmgr->register_method("S3_Summ", "configRefClk", configRefClk);
+//		modmgr->register_method("S3_Summ", "configMGTs", configMGTs);
 
-		modmgr->register_method("S3_Summ", "algoReset", algoReset);
-		modmgr->register_method("S3_Summ", "maskRXLink", maskRXLink);
-		modmgr->register_method("S3_Summ", "alignInputLinks", alignInputLinks);
+//		modmgr->register_method("S3_Summ", "algoReset", algoReset);
+// 	 	modmgr->register_method("S3_Summ", "maskRXLink", maskRXLink);
+//		modmgr->register_method("S3_Summ", "alignInputLinks", alignInputLinks);
 		modmgr->register_method("S3_Summ", "configureRXLinkBuffer", configureRXLinkBuffer);
 		modmgr->register_method("S3_Summ", "configureTXLinkBuffer", configureTXLinkBuffer);
 		modmgr->register_method("S3_Summ", "reqRXLinkBufferCapture", reqRXLinkBufferCapture);
