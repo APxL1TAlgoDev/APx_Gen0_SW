@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 
 	std::map<int, std::vector<uint32_t> > output_link_data;
 
-	for (int link = 0; link < 2; link++)
+	for (int link = 0; link < 36; link++)
 	{
 		// download TX BRAMs
 		rc = card->getOutputLinkBuffer(link, output_link_data[link]);
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 	for (int word = 0; word < 1024; word++)
 	{
 		fprintf(fd, "0x%04x   ", word);
-		for (int link = 0; link < 2; link++)
+		for (int link = 0; link < 36; link++)
 		{
 		         word32_lsw = output_link_data[link][word];
 			//word32_lsw = output_link_data[link][word*2];
@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 			//word64 = word32_lsw;
 			//word64 |= (uint64_t)word32_msw << 32;
 
-			fprintf(fd, "0x%016llx    ", word32_lsw);
+			fprintf(fd, "0x%08llx    ", word32_lsw);
 		}
 		fprintf(fd, "\n");
 	}

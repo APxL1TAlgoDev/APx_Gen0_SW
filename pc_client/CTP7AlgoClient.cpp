@@ -178,6 +178,9 @@ bool CTP7AlgoClient::alignInputLinks(uint32_t alignLat)
 
 bool CTP7AlgoClient::configureRXLinkBuffer(bool CAP_nPB)
 {
+	std::cout << "calling here  configureRXLinkBuffer "  << std::endl;
+
+
 	GENERIC_CALL(RPCMsg(module_name + ".configureRXLinkBuffer")
 	             .set_word("CAP_nPB", CAP_nPB)
 	            );
@@ -192,6 +195,7 @@ bool CTP7AlgoClient::configureTXLinkBuffer(bool CAP_nPB)
 
 bool CTP7AlgoClient::reqRXLinkBufferCapture(void)
 {
+	std::cout << "calling here  reqRXLinkBuffercapture "  << std::endl;
 	GENERIC_CALL(RPCMsg(module_name + ".reqRXLinkBufferCapture"));
 }
 

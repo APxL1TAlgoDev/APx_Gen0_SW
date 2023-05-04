@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 		printf("Couldnt connect to phi %d: %s\n", phi, e.what());
 	}
 
-	for (int lnk=0; lnk<36; lnk++)
+	for (int lnk=0; lnk<32; lnk++)
 	{
 		rc = card->maskRXLink(lnk, 1); 
 		if (rc != 1)
