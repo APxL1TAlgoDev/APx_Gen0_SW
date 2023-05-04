@@ -35,7 +35,7 @@ std::map<int, input_data_t> load_file(std::string path)
 	std::map<int, input_data_t> input_data;
 
 	uint64_t value64;
-	uint64_t value32, value32_data;
+	uint32_t value32, value32_data;
 
 
 	std::string dummyLine;
@@ -46,16 +46,17 @@ std::map<int, input_data_t> load_file(std::string path)
 	getline(infile, dummyLine);
 
 	// Read input data from the file
-	for (int idx = 0; idx < 1024; idx++)
+	for (int idx = 0; idx <1024; idx++)
 	{
 		infile >> std::hex >> value32;
+	      //  std::cout<<"***************** next rowdata************ "<< idx << std::endl;
 	
 
 		for (int i = 0; i <36; i++)
 		{
 			//infile >> std::hex >> value64;
                         infile >> std::hex >> value32_data;
-			//std::cout<<" data written to link "<<  std::hex << value32_data << std::endl;
+		//	std::cout<<" data written to link "<<  std::hex << value32_data<< std::endl;
 			
 			//value32 = uint32_t(value64 & 0xFFFFFFFF);
 			input_data[i].data.push_back(value32_data);
@@ -104,7 +105,7 @@ int main(int argc, char *argv[]) {
 	{
 		rc = card->setInputLinkBuffer(link, input_data[link].data);
         if (rc == false) {
-             std::cout << "setInputLinkBuffer fails for link " << link << std::endl;
+           //  std::cout << "setInputLinkBuffer fails for link " << link << std::endl;
              return -1;
         }
 	}
