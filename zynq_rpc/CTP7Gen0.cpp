@@ -30,6 +30,10 @@ using namespace CTP7Gen0RegMap;
 #define VALIDATE_OUTPUT_LINK(ol) VALIDATE_RANGE(ol, 0, 47)
 
 #define CH_ADDR(reg, ch) ((reg) + ((ch)*C_CH_to_CH_ADDR_OFFSET) )
+#define LUT_CH_ADDR(reg, ch, negeta) ((reg) + ((ch)*CH_TO_CH_LUT_OFFSET) + ((negeta)?POS_TO_NEG_LUT_ADDR_OFFSET:0))
+#define LUT2S_CH_ADDR(reg, ch, negeta) ((reg) + ((ch)*CH_TO_CH_LUT2S_OFFSET) + ((negeta)?POS_TO_NEG_LUT2S_ADDR_OFFSET:0))
+
+//#define CH_ADDR(reg, ch, negeta) ((reg) + ((ch)*CH_TO_CH_REG_OFFSET) + ((negeta)?POS_TO_NEG_REG_ADDR_OFFSET:0))
 #define MGT_CH_ADDR(reg, ch) ((reg) + ((ch)*MGT_CH_TO_CH_REG_OFFSET))
 #define BRAM_CH_ADDR(reg, ch) ((reg) + ((ch)*BRAM_LINK_OFFSET))
 
@@ -48,14 +52,452 @@ static inline bool read_word(uint32_t addr, uint32_t &word)
 	return true;
 }
 
+static inline bool bram_write_verify(uint32_t addr, const std::vector<uint32_t> &data)
+{
+	uint32_t datablock[data.size()];
+	for (unsigned int i = 0; i < data.size(); i++)
+		datablock[i] = data[i];
+
+	if (memsvc_write(memsvc, addr, data.size(), datablock) != 0)
+		return false;
+
+	uint32_t verifblock[data.size()];
+	if (memsvc_read(memsvc, addr, data.size(), verifblock) != 0)
+		return false;
+
+	if (memcmp(datablock, verifblock, data.size()*sizeof(uint32_t)) != 0)
+		return false;
+
+	return true;
+}
+
+
+static inline bool bram_read(uint32_t addr, uint32_t nwords, std::vector<uint32_t> &data)
+{
+	uint32_t datablock[nwords];
+
+	if (memsvc_read(memsvc, addr, nwords, datablock) != 0)
+		return false;
+
+	data.clear();
+	for (unsigned int i = 0; i < nwords; i++)
+		data.push_back(datablock[i]);
+
+	return true;
+}
+void setRunNumber(const RPCMsg *request, RPCMsg *response)
+{
+	
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to setRunNumber module "));
+	response->set_word("result", 1);
+}
+
 void ping(const RPCMsg *request, RPCMsg *response)
 {
 	*response = *request;
 }
 
+void testUptime(const RPCMsg *request, RPCMsg *response)
+{
+
+	uint32_t uptimeData;
+    if (!read_word(CH_ADDR(C_UPTIME_CNT,0),uptimeData))
+    {
+        LOGGER->log_message(LogManager::ERROR, "Unable to read uptime data from Uptime Address");
+        response->set_word("error", 1);
+        return;
+    }
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Uptime data successfully captured %d ", uptimeData));
+    response->set_word("result", uptimeData);
+}
+
+void setDAQConfig(const RPCMsg *request, RPCMsg *response)
+{
+	
+
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to DAQConfig module.  "));
+
+	response->set_word("result", 1);
+	
+}
+
+void alignTTCDecoder(const RPCMsg *request, RPCMsg *response)
+{
+
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to align TTCDecoder module "));
+
+	response->set_word("result", 1);
+    
+}
+
+void setInputLinkTowerMask(const RPCMsg *request, RPCMsg *response)
+{
+
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to setInputLinkTowerMask "));
+
+	response->set_word("result", 1);
+    
+}
+
+void setTMTCycle(const RPCMsg *request, RPCMsg *response)
+{
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to setTMTCycle "));
+	response->set_word("result", 1);
+}
+
+void getInputLinkTowerMask(const RPCMsg *request, RPCMsg *response)
+{
+
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to getInputLinkTowerMask "));
+	
+    
+}
+
+
+void setInputLinkAlignmentMask(const RPCMsg *request, RPCMsg *response)
+{
+	/*
+
+	uint32_t tt_mask; // trigger tower mask
+
+	if (!request->get_key_exists("mask"))
+		RETURN_ERROR("Missing required parameter: mask");
+	std::vector<uint32_t> mask = request->get_word_array("mask");
+	VALIDATE_RANGE(mask.size(), 32, 32);
+	for (uint32_t link = 0; link < 32; link++)
+	{
+		// Input link masks
+		if (!write_word(CH_ADDR(RX_POS_ALIGN_MASK_CH0_ADDR, link, negativeEta), mask[link]))
+			RETURN_ERROR("Unable to access registers");
+
+		// Mask all trigger towers in case input link mask is applied 
+		if ( mask[link] != 0)
+		{
+			if (link < 30)
+			   tt_mask = 0xFF; // ECAL/HCAL Barrel and Endcap (8 trigger towers per link)
+			else
+			   tt_mask = 0x7FF; // HF (11 trigger towers per link)
+
+          		if (!write_word(CH_ADDR(RX_POS_TT_MASK_CH0_ADDR, link, negativeEta), tt_mask))
+	         		RETURN_ERROR("Unable to access registers");
+		}
+	}*/
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to setInputLinkAlignmentMask "));
+	response->set_word("result", 1);
+}
+
+void alignInputLinks(const RPCMsg *request, RPCMsg *response)
+{
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to alignInputLinks module "));
+	response->set_word("result", 1);
+}
+
+void alignOutputLinks(const RPCMsg *request, RPCMsg *response)
+{
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to alignoutput module "));
+	response->set_word("result", 1);
+}
+
+void resetInputLinkBX0ErrorCounters(const RPCMsg *request, RPCMsg *response)
+{
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to resetInputLinkBX0ErrorCounters "));
+	response->set_word("result", 1);
+}
+
+void resetInputLinkChecksumErrorCounters(const RPCMsg *request, RPCMsg *response)
+{
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to resetInputLinkChecksumErrorCounters  "));
+	response->set_word("result", 1);
+}
+
+void getInputLinkAlignmentStatus(const RPCMsg *request, RPCMsg *response)
+{
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to getInputLink alignment status  "));
+	uint32_t alignStatus=0;
+	response->set_word("result", alignStatus);
+}
+
+void getInputLinkStatus(const RPCMsg *request, RPCMsg *response)
+{
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to getInputLink  status  "));
+
+	
+	
+	std::vector<uint32_t> rawLinkStatus, checkSumErrorCount, bx0ErrorCount, bx0Latency, alignmentMask, towerMask;
+	for (int i = 0; i < 32; i++)
+	{
+		uint32_t word;
+
+		
+		rawLinkStatus.push_back(word);
+
+		
+		checkSumErrorCount.push_back(word);
+
+		
+		bx0ErrorCount.push_back(word);
+
+		
+		bx0Latency.push_back(word);
+
+		
+		alignmentMask.push_back(word);
+
+		
+		towerMask.push_back(word);
+	}
+	response->set_word_array("rawLinkStatus", rawLinkStatus);
+	response->set_word_array("checkSumErrorCount", checkSumErrorCount);
+	response->set_word_array("bx0ErrorCount", bx0ErrorCount);
+	response->set_word_array("bx0Latency", bx0Latency);
+	response->set_word_array("alignmentMask", alignmentMask);
+	response->set_word_array("towerMask", towerMask);
+	response->set_word("result", 1);
+}
+
+void resetInputLinkDecoders(const RPCMsg *request, RPCMsg *response)
+{
+	
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to reset Input LinkDecoders  "));
+
+	response->set_word("result", 1);
+}
+
+
+void getTTCBGoCmdCnt(const RPCMsg *request, RPCMsg *response)
+{
+	uint32_t value=0;
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to reset getTTCBgoCmdcnt  "));
+	response->set_word("L1A", value);
+	response->set_word("BX0", value);
+	response->set_word("EC0", value);
+	response->set_word("Resync", value);
+
+	response->set_word("OC0", value);
+	response->set_word("TestSync", value);
+	response->set_word("Start", value);
+	response->set_word("Stop", value);
+
+	response->set_word("L1ID", value);
+	response->set_word("Orbit", value);
+}
+
+void getTTCStatus(const RPCMsg *request, RPCMsg *response)
+{
+	//uint32_t value;
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to getTTCStatus module  "));
+
+	//if (!read_word(TTC_MMCM_LOCKED, value)) RETURN_ERROR("Unable to access registers");
+	response->set_word("BCClockLocked", true);
+
+	//if (!read_word(TTC_BX0_LOCKED, value)) RETURN_ERROR("Unable to access registers");
+	response->set_word("BX0Locked", true);
+
+	//if (!read_word(TTC_BX0_ERR, value)) RETURN_ERROR("Unable to access registers");
+	response->set_word("BX0Error", false);
+
+	//if (!read_word(TTC_BX0_UNLOCKED_CNT, value)) RETURN_ERROR("Unable to access registers");
+	response->set_word("BX0UnlockedCnt", false);
+
+	//if (!read_word(TTC_DEC_SINGLE_ERR_CNT, value)) RETURN_ERROR("Unable to access registers");
+	response->set_word("TTCDecoderSingleError", false);
+
+	//if (!read_word(TTC_DEC_DOUBLE_ERR_CNT, value)) RETURN_ERROR("Unable to access registers");
+	response->set_word("TTCDecoderDoubleError", false);
+}
+
+void getDAQStatus(const RPCMsg *request, RPCMsg *response)
+{
+	uint32_t value=0;
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to getDAQStatus module "));
+
+	response->set_word("fifoOcc", value);
+
+	response->set_word("fifoOccMax", value);
+
+	response->set_word("fifoEmpty", value);
+
+	response->set_word("CTP77ToAMC13BP", value);
+
+	response->set_word("AMC13ToCTP7BP", value);
+
+	response->set_word("TTS", value);
+
+	response->set_word("internalError", value);
+
+//	if (!read_word(INTERNAL_ERROR, value))	
+//		RETURN_ERROR("Unable to access registers");
+	response->set_word("amcCoreReady", 1);
+
+}
+
+
+void getInputLinkLUT(const RPCMsg *request, RPCMsg *response)
+{
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to getInputLINK LUT module  "));
+	PARAM_WORD(negativeEta);
+	PARAM_WORD(type);
+	PARAM_WORD(iEta);
+	VALIDATE_RANGE(type, 1, 3);
+	if (type == 1 || type == 2)
+		VALIDATE_RANGE(iEta, 1, 28);
+	else
+		VALIDATE_RANGE(iEta, 30, 41);
+
+	uint32_t base;
+	uint32_t ch_offset;
+	uint32_t lut_size;
+
+	switch (type)
+	{
+	case 1:
+		base = POS_LUT_ECAL_01;
+		ch_offset = iEta - 1;
+		lut_size = 512;
+		break;
+	case 2:
+		base = POS_LUT_HCAL_01;
+		ch_offset = iEta - 1;
+		lut_size = 512;
+		break;
+	case 3:
+		base = POS_LUT_HF_30;
+		ch_offset = (iEta - 30) * 2; // HF LUTs are twice the size of ECAL/HCAL, hence the offset between 2 HF LUTs twice bigger
+		lut_size = 1024;
+		break;
+	}
+
+	std::vector<uint32_t> data;
+	if (!bram_read(LUT_CH_ADDR(base, ch_offset, negativeEta), lut_size, data))
+		RETURN_ERROR("Unable to acccess BRAM");
+	response->set_word_array("result", data);
+}
+
+
+// virtual bool setInputLinkLUT(bool negativeEta, LUTType type, LUTiEtaIndex iEta, const std::vector<uint32_t> &lut);
+void setInputLinkLUT(const RPCMsg *request, RPCMsg *response)
+{
+
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to setInputLINK LUT module  "));
+	PARAM_WORD(negativeEta);
+	PARAM_WORD(type);
+	PARAM_WORD(iEta);
+	VALIDATE_RANGE(type, 1, 3);
+
+        uint32_t lut_size;
+
+	if (type == 1 || type == 2) {
+		VALIDATE_RANGE(iEta, 1, 28);
+		lut_size = 512;
+	}
+	else {
+		VALIDATE_RANGE(iEta, 30, 41);
+                lut_size = 1024;
+	}
+
+	if (!request->get_key_exists("lut"))
+		RETURN_ERROR("Missing required parameter: data");
+	std::vector<uint32_t> lut = request->get_word_array("lut");
+	VALIDATE_RANGE(lut.size(), lut_size, lut_size);
+	LOG_PARAM_3(negativeEta, type, iEta);
+
+	uint32_t base;
+	uint32_t ch_offset;
+	switch (type)
+	{
+	case 1:
+		base = POS_LUT_ECAL_01;
+		ch_offset = iEta - 1;
+		break;
+	case 2:
+		base = POS_LUT_HCAL_01;
+		ch_offset = iEta - 1;
+		break;
+	case 3:
+		base = POS_LUT_HF_30;
+		ch_offset = (iEta - 30) * 2;  // HF LUTs are twice the size of ECAL/HCAL, hence the offset between 2 HF LUTs twice bigger
+		break;
+	}
+
+	if (!bram_write_verify(LUT_CH_ADDR(base, ch_offset, negativeEta), lut))
+		RETURN_ERROR("Unable to access BRAM");
+	response->set_word("result", 1);
+
+	
+}
+
+
+// virtual bool getInputLinkLUT2S(bool negativeEta, LUTiEtaIndex iEta, std::vector<uint32_t> &lut);
+void getInputLinkLUT2S(const RPCMsg *request, RPCMsg *response)
+{
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to getInputLINK LUT2S module  "));
+
+	PARAM_WORD(negativeEta);
+	PARAM_WORD(iEta);
+	
+	VALIDATE_RANGE(iEta, 1, 28);
+
+	uint32_t base;
+	uint32_t ch_offset;
+	uint32_t lut_size;
+
+	base = POS_LUT2S_XB_01;
+	ch_offset = iEta - 1;
+	lut_size = 8192;
+
+	std::vector<uint32_t> data;
+	if (!bram_read(LUT2S_CH_ADDR(base, ch_offset, negativeEta), lut_size, data))
+		RETURN_ERROR("Unable to acccess BRAM");
+	response->set_word_array("result", data);
+}
+
+
+// virtual bool setInputLinkLUT2S(bool negativeEta, LUTiEtaIndex iEta, const std::vector<uint32_t> &lut);
+void setInputLinkLUT2S(const RPCMsg *request, RPCMsg *response)
+{
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to setInputLINK LUT2S module  "));
+	PARAM_WORD(negativeEta);
+	PARAM_WORD(iEta);
+
+        uint32_t lut_size;
+
+	VALIDATE_RANGE(iEta, 1, 28);
+	lut_size = 8192;
+
+	if (!request->get_key_exists("lut"))
+		RETURN_ERROR("Missing required parameter: data");
+	std::vector<uint32_t> lut = request->get_word_array("lut");
+	VALIDATE_RANGE(lut.size(), lut_size, lut_size);
+	LOG_PARAM_2(negativeEta, iEta);
+
+	uint32_t base;
+	uint32_t ch_offset;
+	
+	base = POS_LUT2S_XB_01;
+	ch_offset = iEta - 1;
+
+	if (!bram_write_verify(LUT2S_CH_ADDR(base, ch_offset, negativeEta), lut))
+		RETURN_ERROR("Unable to access BRAM");
+	response->set_word("result", 1);
+}
+
+void getInputLinkLUTHcalFb(const RPCMsg *request, RPCMsg *response)
+{
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to getInputLINK LUTHCAL Fb  "));
+	std::vector<uint32_t> data;
+	response->set_word_array("result", data);
+}
+
+void setInputLinkLUTHcalFb(const RPCMsg *request, RPCMsg *response)
+{
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to setInputLINK LUTHCAL Fb module  "));
+	response->set_word("result", 1);
+}
+
 // virtual bool hardReset(std::string bitstream = "virtex7");
 void hardReset(const RPCMsg *request, RPCMsg *response)
 {
+
 
 	std::string image = request->get_string("bitstream");
 
@@ -67,8 +509,8 @@ void hardReset(const RPCMsg *request, RPCMsg *response)
 	}
 
 	std::string file;
-	std::string binfile = stdsprintf("/tmp/%s.bin", image.c_str());
-	std::string bitfile = stdsprintf("/tmp/%s.bit", image.c_str());
+	std::string binfile = stdsprintf("/mnt/persistent/virtex7/%s.bin", image.c_str());
+	std::string bitfile = stdsprintf("/mnt/persistent/virtex7/%s.bit", image.c_str());
 	if (access(binfile.c_str(), F_OK) == 0)
 		file = binfile;
 	else if (access(bitfile.c_str(), F_OK) == 0)
@@ -96,15 +538,23 @@ void hardReset(const RPCMsg *request, RPCMsg *response)
 	}
 	LOGGER->log_message(LogManager::INFO, stdsprintf("loaded bitfile %s: v7load returned %d", file.c_str(), WEXITSTATUS(ret)));
 
+	/*if (!write_word(CH_ADDR(L1_PHI_REGION, 0, 0), phi))
+		RETURN_ERROR("Unable to access registers");
+	// 0xC0 standardised as the base CTP7 ID for Phi 0, Eta Pos
+	if (!write_word(CH_ADDR(L1_POS_CTP7_ID, 0, 0), 0xC0 + 2 * phi))
+		RETURN_ERROR("Unable to access registers");
+	if (!write_word(CH_ADDR(L1_POS_CTP7_ID, 0, 1), 0xC0 + (2 * phi) + 1))
+		RETURN_ERROR("Unable to access registers");*/
 
-	// Invalidate configuration string as part of hard reset
+        // Invalidate configuration string as part of hard reset
 	std::string confstr = "null";
-	FILE *fd = fopen("/tmp/CTP7Gen0-configdata.txt", "w");
+	FILE *fd = fopen("/tmp/UCTSummary-configdata.txt", "w");
 	if (!fd)
 		RETURN_ERROR("Unable to open configdata file");
 	if (fwrite(confstr.data(), confstr.size(), 1, fd) != 1)
 		RETURN_ERROR("Unable to write to configdata file");
 	fclose(fd);
+
 
 	response->set_word("result", 1);
 }
@@ -205,20 +655,7 @@ void maskRXLink(const RPCMsg *request, RPCMsg *response)
 }
 
 // virtual bool alignInputLinks(uint32_t alignLat);
-void alignInputLinks(const RPCMsg *request, RPCMsg *response)
-{
-	PARAM_WORD(alignLat);
 
-	VALIDATE_RANGE(alignLat, 0, 255);
-
-	if (!write_word(C_LINK_ALIGN_LAT, alignLat)) RETURN_ERROR("Unable to access registers");	
-
-	if (!write_word(C_LINK_ALIGN_REQ, 0)) RETURN_ERROR("Unable to access registers");	
-	if (!write_word(C_LINK_ALIGN_REQ, 1)) RETURN_ERROR("Unable to access registers");	
-	if (!write_word(C_LINK_ALIGN_REQ, 0)) RETURN_ERROR("Unable to access registers");	
-
-	response->set_word("result", 1);
-}
 
 
 // virtual bool configureRXLinkBuffer(bool CAP_nPB);
@@ -282,6 +719,7 @@ void getConfiguration(const RPCMsg *request, RPCMsg *response)
 		output += std::string(data, ret);
 	}
 	fclose(fd);
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Data copied from Configuration file "));
 	response->set_string("result", output);
 }
 
@@ -290,48 +728,27 @@ void setConfiguration(const RPCMsg *request, RPCMsg *response)
 {
 	REQUIRE_PARAMETER("input");
 	std::string input = request->get_string("input");
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Data to be written to configuration file %s ", input.data()));
 	FILE *fd = fopen("/tmp/CTP7Gen0-configdata.txt", "w");
 	if (!fd)
+		{
+		LOGGER->log_message(LogManager::ERROR, "Unable to openfile");
 		RETURN_ERROR("Unable to open configdata file");
+		}
+
 	if (fwrite(input.data(), input.size(), 1, fd) != 1)
+		{
+		LOGGER->log_message(LogManager::ERROR, "Unable to write to config data file");
 		RETURN_ERROR("Unable to write to configdata file");
+		}
 	fclose(fd);
 	LOGGER->log_message(LogManager::INFO, stdsprintf("%u bytes of configuration data written", input.size()));
 	response->set_word("result", 1);
 }
 
-static inline bool bram_write_verify(uint32_t addr, const std::vector<uint32_t> &data)
-{
-	uint32_t datablock[data.size()];
-	for (unsigned int i = 0; i < data.size(); i++)
-		datablock[i] = data[i];
 
-	if (memsvc_write(memsvc, addr, data.size(), datablock) != 0)
-		return false;
 
-	uint32_t verifblock[data.size()];
-	if (memsvc_read(memsvc, addr, data.size(), verifblock) != 0)
-		return false;
 
-	if (memcmp(datablock, verifblock, data.size()*sizeof(uint32_t)) != 0)
-		return false;
-
-	return true;
-}
-
-static inline bool bram_read(uint32_t addr, uint32_t nwords, std::vector<uint32_t> &data)
-{
-	uint32_t datablock[nwords];
-
-	if (memsvc_read(memsvc, addr, nwords, datablock) != 0)
-		return false;
-
-	data.clear();
-	for (unsigned int i = 0; i < nwords; i++)
-		data.push_back(datablock[i]);
-
-	return true;
-}
 
 // virtual bool getInputLinkBuffer(bool negativeEta, InputLink link, std::vector<uint32_t> &selectedData);
 void getInputLinkBuffer(const RPCMsg *request, RPCMsg *response)
@@ -390,7 +807,7 @@ void getModuleBuildInfo(const RPCMsg *request, RPCMsg *response)
 }
 
 extern "C" {
-	const char *module_version_key = "S3_Summ v1.1.0";
+	const char *module_version_key = "UCTSummary v1.1.0";
 	int module_activity_color = 5;
 	void module_init(ModuleManager *modmgr)
 	{
@@ -401,27 +818,61 @@ extern "C" {
 			return;
 		}
 
-		modmgr->register_method("S3_Summ", "ping", ping);
-		modmgr->register_method("S3_Summ", "hardReset", hardReset);
+		modmgr->register_method("UCTSummary", "ping", ping);
+		modmgr->register_method("UCTSummary", "setRunNumber", setRunNumber);
+		modmgr->register_method("UCTSummary", "hardReset", hardReset);
+		modmgr->register_method("UCTSummary","setDAQConfig", setDAQConfig);
+		modmgr->register_method("UCTSummary","alignTTCDecoder", alignTTCDecoder);
 
-		modmgr->register_method("S3_Summ", "getInputLinkBuffer", getInputLinkBuffer);
-		modmgr->register_method("S3_Summ", "setInputLinkBuffer", setInputLinkBuffer);
-		modmgr->register_method("S3_Summ", "getOutputLinkBuffer", getOutputLinkBuffer);
-		modmgr->register_method("S3_Summ", "setOutputLinkBuffer", setOutputLinkBuffer);
-		
-//		modmgr->register_method("S3_Summ", "setTxPower", setTxPower);
-//		modmgr->register_method("S3_Summ", "configRefClk", configRefClk);
-//		modmgr->register_method("S3_Summ", "configMGTs", configMGTs);
+		modmgr->register_method("UCTSummary","setInputLinkTowerMask", setInputLinkTowerMask);
+		modmgr->register_method("UCTSummary","getInputLinkTowerMask", getInputLinkTowerMask);
+		modmgr->register_method("UCTSummary", "setInputLinkAlignmentMask", setInputLinkAlignmentMask);
+		modmgr->register_method("UCTSummary", "setTMTCycle", setTMTCycle);
 
-//		modmgr->register_method("S3_Summ", "algoReset", algoReset);
-// 	 	modmgr->register_method("S3_Summ", "maskRXLink", maskRXLink);
-//		modmgr->register_method("S3_Summ", "alignInputLinks", alignInputLinks);
-		modmgr->register_method("S3_Summ", "configureRXLinkBuffer", configureRXLinkBuffer);
-		modmgr->register_method("S3_Summ", "configureTXLinkBuffer", configureTXLinkBuffer);
-		modmgr->register_method("S3_Summ", "reqRXLinkBufferCapture", reqRXLinkBufferCapture);
-		modmgr->register_method("S3_Summ", "reqTXLinkBufferCapture", reqTXLinkBufferCapture);
+		modmgr->register_method("UCTSummary", "alignInputLinks", alignInputLinks);
+		modmgr->register_method("UCTSummary", "alignOutputLinks", alignOutputLinks);
+		modmgr->register_method("UCTSummary", "resetInputLinkChecksumErrorCounters", resetInputLinkChecksumErrorCounters);
+		modmgr->register_method("UCTSummary", "resetInputLinkBX0ErrorCounters", resetInputLinkBX0ErrorCounters);
+		modmgr->register_method("UCTSummary", "getInputLinkAlignmentStatus", getInputLinkAlignmentStatus);
+		modmgr->register_method("UCTSummary", "getInputLinkStatus", getInputLinkStatus);
+		modmgr->register_method("UCTSummary", "resetInputLinkDecoders", resetInputLinkDecoders);
+		modmgr->register_method("UCTSummary", "getTTCStatus", getTTCStatus);
+
+
+		modmgr->register_method("UCTSummary", "getInputLinkLUT", getInputLinkLUT);
+		modmgr->register_method("UCTSummary", "setInputLinkLUT", setInputLinkLUT);
+
+		modmgr->register_method("UCTSummary", "getInputLinkLUT2S", getInputLinkLUT2S);
+		modmgr->register_method("UCTSummary", "setInputLinkLUT2S", setInputLinkLUT2S);
 		
-		modmgr->register_method("S3_Summ", "getModuleBuildInfo", getModuleBuildInfo);
+		modmgr->register_method("UCTSummary", "getInputLinkLUTHcalFb", getInputLinkLUTHcalFb);
+		modmgr->register_method("UCTSummary", "setInputLinkLUTHcalFb", setInputLinkLUTHcalFb);
+		
+
+
+
+		modmgr->register_method("UCTSummary","testUptime", testUptime);
+		modmgr->register_method("UCTSummary","setConfiguration", setConfiguration);
+		modmgr->register_method("UCTSummary","getConfiguration", getConfiguration);
+		
+		modmgr->register_method("UCTSummary", "getInputLinkBuffer", getInputLinkBuffer);
+		modmgr->register_method("UCTSummary", "setInputLinkBuffer", setInputLinkBuffer);
+		modmgr->register_method("UCTSummary", "getOutputLinkBuffer", getOutputLinkBuffer);
+		modmgr->register_method("UCTSummary", "setOutputLinkBuffer", setOutputLinkBuffer);
+		
+		modmgr->register_method("UCTSummary", "setTxPower", setTxPower);
+//		modmgr->register_method("UCTSummary", "configRefClk", configRefClk);
+//		modmgr->register_method("UCTSummary", "configMGTs", configMGTs);
+
+//		modmgr->register_method("UCTSummary", "algoReset", algoReset);
+// 	 	modmgr->register_method("UCTSummary", "maskRXLink", maskRXLink);
+//		modmgr->register_method("UCTSummary", "alignInputLinks", alignInputLinks);
+		modmgr->register_method("UCTSummary", "configureRXLinkBuffer", configureRXLinkBuffer);
+		modmgr->register_method("UCTSummary", "configureTXLinkBuffer", configureTXLinkBuffer);
+		modmgr->register_method("UCTSummary", "reqRXLinkBufferCapture", reqRXLinkBufferCapture);
+		modmgr->register_method("UCTSummary", "reqTXLinkBufferCapture", reqTXLinkBufferCapture);
+		modmgr->register_method("UCTSummary", "getModuleBuildInfo", getModuleBuildInfo);
+		}
 	}
-}
+}	
 
