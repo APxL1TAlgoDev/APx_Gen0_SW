@@ -37,6 +37,7 @@ using namespace CTP7Gen0RegMap;
 #define MGT_CH_ADDR(reg, ch) ((reg) + ((ch)*MGT_CH_TO_CH_REG_OFFSET))
 #define BRAM_CH_ADDR(reg, ch) ((reg) + ((ch)*BRAM_LINK_OFFSET))
 
+#define SWEET_SPOT_OFFSET 330
 static memsvc_handle_t memsvc;
 
 static inline bool write_word(uint32_t addr, uint32_t word)
@@ -121,14 +122,146 @@ void setDAQConfig(const RPCMsg *request, RPCMsg *response)
 	
 }
 
+static inline bool ttc_dec_rst_stat(void)
+{
+	return write_word(C_TTC_STAT_RST, 1);
+}
+
+static inline bool get_ttc_bit_err_count(uint32_t & ttc_dec_bit_err_cnt)
+{
+
+	uint32_t single_bit_err_cnt, double_bit_err_cnt;
+	
+
+	read_word(C_TTC_DEC_SINGLE_ERR_CNT, single_bit_err_cnt);
+	read_word(C_TTC_DEC_DOUBLE_ERR_CNT, double_bit_err_cnt);
+
+	//ttc_dec_bit_err_cnt = single_bit_err_cnt + double_bit_err_cnt;
+	ttc_dec_bit_err_cnt =  double_bit_err_cnt;
+
+	return true; // todo: return value
+}
+
+uint32_t find_initial_err_transition(void)
+{
+	uint32_t next_break;
+
+
+	ttc_dec_rst_stat();
+
+	usleep(10000);
+
+	uint32_t ttc_dec_bit_err_cnt;
+
+	get_ttc_bit_err_count(ttc_dec_bit_err_cnt);
+
+	if (ttc_dec_bit_err_cnt > 5)
+	{
+		next_break = 0;
+	}
+	else
+	{
+		next_break = 1;
+	}
+
+	return  next_break ;
+}
+
+static inline bool phase_shift_BC_clock(uint32_t phase_shift_req)
+{
+	uint32_t phase_shift_curr = 0;
+
+	do
+	{
+		write_word(C_TTC_MMCM_PHASE_SHIFT, 1);
+		phase_shift_curr++;
+	}
+	while (phase_shift_curr < phase_shift_req);
+
+	return true; // todo: return value
+}
+
+uint32_t move_to_next_err_transition(uint32_t err_transition)
+{
+	uint32_t shift_count = 0;
+	uint32_t shift_continue = 1;
+
+	uint32_t ttc_dec_bit_err_cnt;
+
+	do
+	{
+		phase_shift_BC_clock(1);
+		shift_count++;
+
+		ttc_dec_rst_stat();
+
+		usleep(1000);
+
+		get_ttc_bit_err_count(ttc_dec_bit_err_cnt);
+
+		if (err_transition == 0 && ttc_dec_bit_err_cnt == 0)
+		{
+			shift_continue = 0;
+		}
+		else if (err_transition != 0 && ttc_dec_bit_err_cnt != 0)
+		{
+			shift_continue = 0;
+		}
+	}
+	while (shift_continue && shift_count < 5000 ); // bail out after 5000 clock phase shifts
+
+	return shift_count;
+}
+
 void alignTTCDecoder(const RPCMsg *request, RPCMsg *response)
 {
 
 	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to align TTCDecoder module "));
 
-	response->set_word("result", 1);
+	// To be looked into if needed
+//	uint32_t mmcm_locked;
+//	read_word(TTC_MMCM_LOCKED, mmcm_locked);
+
+
+	//write_word(TTC_MMCM_RST, 1);
+	//usleep(50000);
+
+	// disable L1As first
+	if (!write_word(C_TTC_L1A_ENABLE, 0))  RETURN_ERROR("Unable to access registers");
+
+
+	uint32_t err_transition;
+
+	err_transition = find_initial_err_transition();
+
+	phase_shift_BC_clock(10);
+
+	move_to_next_err_transition(err_transition);
+
+	if (err_transition == 0)
+	{
+		phase_shift_BC_clock(SWEET_SPOT_OFFSET);
+	}
+	else
+	{
+		err_transition = 0;
+
+		phase_shift_BC_clock(10);
+
+		move_to_next_err_transition(err_transition);
+
+		phase_shift_BC_clock(SWEET_SPOT_OFFSET);
+	}
+
+	usleep(5000);
+
+	// Reset TTC diagnostics before returning
+	ttc_dec_rst_stat();
+
+	write_word(C_TTC_L1A_ENABLE, 1); // reenable L1As
     
 }
+
 
 void setInputLinkTowerMask(const RPCMsg *request, RPCMsg *response)
 {
@@ -156,15 +289,16 @@ void getInputLinkTowerMask(const RPCMsg *request, RPCMsg *response)
 
 void setInputLinkAlignmentMask(const RPCMsg *request, RPCMsg *response)
 {
-	/*
+	PARAM_WORD(negativeEta);
+	LOG_PARAM_1(negativeEta);
 
 	uint32_t tt_mask; // trigger tower mask
 
-	if (!request->get_key_exists("mask"))
+	/*if (!request->get_key_exists("mask"))
 		RETURN_ERROR("Missing required parameter: mask");
 	std::vector<uint32_t> mask = request->get_word_array("mask");
-	VALIDATE_RANGE(mask.size(), 32, 32);
-	for (uint32_t link = 0; link < 32; link++)
+	VALIDATE_RANGE(mask.size(), 36, 36);
+	for (uint32_t link = 0; link < 36; link++)
 	{
 		// Input link masks
 		if (!write_word(CH_ADDR(RX_POS_ALIGN_MASK_CH0_ADDR, link, negativeEta), mask[link]))
@@ -180,8 +314,8 @@ void setInputLinkAlignmentMask(const RPCMsg *request, RPCMsg *response)
 
           		if (!write_word(CH_ADDR(RX_POS_TT_MASK_CH0_ADDR, link, negativeEta), tt_mask))
 	         		RETURN_ERROR("Unable to access registers");
-		}
-	}*/
+		
+	}}*/
 	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to setInputLinkAlignmentMask "));
 	response->set_word("result", 1);
 }
@@ -284,25 +418,25 @@ void getTTCBGoCmdCnt(const RPCMsg *request, RPCMsg *response)
 
 void getTTCStatus(const RPCMsg *request, RPCMsg *response)
 {
-	//uint32_t value;
+	uint32_t value;
 	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to getTTCStatus module  "));
 
-	//if (!read_word(TTC_MMCM_LOCKED, value)) RETURN_ERROR("Unable to access registers");
+	if (!read_word(C_TTC_MMCM_LOCKED, value)) RETURN_ERROR("Unable to access registers");
 	response->set_word("BCClockLocked", true);
 
-	//if (!read_word(TTC_BX0_LOCKED, value)) RETURN_ERROR("Unable to access registers");
+	if (!read_word(C_TTC_BX0_LOCKED, value)) RETURN_ERROR("Unable to access registers");
 	response->set_word("BX0Locked", true);
 
-	//if (!read_word(TTC_BX0_ERR, value)) RETURN_ERROR("Unable to access registers");
+	if (!read_word(C_TTC_BX0_ERR, value)) RETURN_ERROR("Unable to access registers");
 	response->set_word("BX0Error", false);
 
-	//if (!read_word(TTC_BX0_UNLOCKED_CNT, value)) RETURN_ERROR("Unable to access registers");
+	if (!read_word(C_TTC_BX0_UNLOCKED_CNT, value)) RETURN_ERROR("Unable to access registers");
 	response->set_word("BX0UnlockedCnt", false);
 
-	//if (!read_word(TTC_DEC_SINGLE_ERR_CNT, value)) RETURN_ERROR("Unable to access registers");
+	if (!read_word(C_TTC_DEC_SINGLE_ERR_CNT, value)) RETURN_ERROR("Unable to access registers");
 	response->set_word("TTCDecoderSingleError", false);
 
-	//if (!read_word(TTC_DEC_DOUBLE_ERR_CNT, value)) RETURN_ERROR("Unable to access registers");
+	if (!read_word(C_TTC_DEC_DOUBLE_ERR_CNT, value)) RETURN_ERROR("Unable to access registers");
 	response->set_word("TTCDecoderDoubleError", false);
 }
 
@@ -368,8 +502,8 @@ void getInputLinkLUT(const RPCMsg *request, RPCMsg *response)
 	}
 
 	std::vector<uint32_t> data;
-	if (!bram_read(LUT_CH_ADDR(base, ch_offset, negativeEta), lut_size, data))
-		RETURN_ERROR("Unable to acccess BRAM");
+	//if (!bram_read(LUT_CH_ADDR(base, ch_offset, negativeEta), lut_size, data))
+	//	RETURN_ERROR("Unable to acccess BRAM");
 	response->set_word_array("result", data);
 }
 
@@ -379,7 +513,7 @@ void setInputLinkLUT(const RPCMsg *request, RPCMsg *response)
 {
 
 	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to setInputLINK LUT module  "));
-	PARAM_WORD(negativeEta);
+	/*PARAM_WORD(negativeEta);
 	PARAM_WORD(type);
 	PARAM_WORD(iEta);
 	VALIDATE_RANGE(type, 1, 3);
@@ -395,8 +529,8 @@ void setInputLinkLUT(const RPCMsg *request, RPCMsg *response)
                 lut_size = 1024;
 	}
 
-	if (!request->get_key_exists("lut"))
-		RETURN_ERROR("Missing required parameter: data");
+	//if (!request->get_key_exists("lut"))
+	//	RETURN_ERROR("Missing required parameter: data");
 	std::vector<uint32_t> lut = request->get_word_array("lut");
 	VALIDATE_RANGE(lut.size(), lut_size, lut_size);
 	LOG_PARAM_3(negativeEta, type, iEta);
@@ -417,10 +551,10 @@ void setInputLinkLUT(const RPCMsg *request, RPCMsg *response)
 		base = POS_LUT_HF_30;
 		ch_offset = (iEta - 30) * 2;  // HF LUTs are twice the size of ECAL/HCAL, hence the offset between 2 HF LUTs twice bigger
 		break;
-	}
+	}*/
 
-	if (!bram_write_verify(LUT_CH_ADDR(base, ch_offset, negativeEta), lut))
-		RETURN_ERROR("Unable to access BRAM");
+	//if (!bram_write_verify(LUT_CH_ADDR(base, ch_offset, negativeEta), lut))
+	//	RETURN_ERROR("Unable to access BRAM");
 	response->set_word("result", 1);
 
 	
@@ -446,8 +580,8 @@ void getInputLinkLUT2S(const RPCMsg *request, RPCMsg *response)
 	lut_size = 8192;
 
 	std::vector<uint32_t> data;
-	if (!bram_read(LUT2S_CH_ADDR(base, ch_offset, negativeEta), lut_size, data))
-		RETURN_ERROR("Unable to acccess BRAM");
+	//if (!bram_read(LUT2S_CH_ADDR(base, ch_offset, negativeEta), lut_size, data))
+	//	RETURN_ERROR("Unable to acccess BRAM");
 	response->set_word_array("result", data);
 }
 
@@ -456,7 +590,7 @@ void getInputLinkLUT2S(const RPCMsg *request, RPCMsg *response)
 void setInputLinkLUT2S(const RPCMsg *request, RPCMsg *response)
 {
 	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to setInputLINK LUT2S module  "));
-	PARAM_WORD(negativeEta);
+	/*PARAM_WORD(negativeEta);
 	PARAM_WORD(iEta);
 
         uint32_t lut_size;
@@ -464,8 +598,8 @@ void setInputLinkLUT2S(const RPCMsg *request, RPCMsg *response)
 	VALIDATE_RANGE(iEta, 1, 28);
 	lut_size = 8192;
 
-	if (!request->get_key_exists("lut"))
-		RETURN_ERROR("Missing required parameter: data");
+	//if (!request->get_key_exists("lut"))
+	//	RETURN_ERROR("Missing required parameter: data");
 	std::vector<uint32_t> lut = request->get_word_array("lut");
 	VALIDATE_RANGE(lut.size(), lut_size, lut_size);
 	LOG_PARAM_2(negativeEta, iEta);
@@ -476,8 +610,8 @@ void setInputLinkLUT2S(const RPCMsg *request, RPCMsg *response)
 	base = POS_LUT2S_XB_01;
 	ch_offset = iEta - 1;
 
-	if (!bram_write_verify(LUT2S_CH_ADDR(base, ch_offset, negativeEta), lut))
-		RETURN_ERROR("Unable to access BRAM");
+	//if (!bram_write_verify(LUT2S_CH_ADDR(base, ch_offset, negativeEta), lut))
+	//	RETURN_ERROR("Unable to access BRAM");*/
 	response->set_word("result", 1);
 }
 
@@ -509,11 +643,8 @@ void hardReset(const RPCMsg *request, RPCMsg *response)
 	}
 
 	std::string file;
-	std::string binfile = stdsprintf("/mnt/persistent/virtex7/%s.bin", image.c_str());
 	std::string bitfile = stdsprintf("/mnt/persistent/virtex7/%s.bit", image.c_str());
-	if (access(binfile.c_str(), F_OK) == 0)
-		file = binfile;
-	else if (access(bitfile.c_str(), F_OK) == 0)
+	if (access(bitfile.c_str(), F_OK) == 0)
 		file = bitfile;
 	else
 	{
@@ -801,6 +932,38 @@ void setOutputLinkBuffer(const RPCMsg *request, RPCMsg *response)
 	response->set_word("result", 1);
 }
 
+// virtual bool getFWInfo(FWInfo &fwInfo);
+void getFWInfo(const RPCMsg *request, RPCMsg *response)
+{
+	uint32_t value=1;
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to getFWinfo module  "));
+
+	//if (!read_word(FW_BUILD_DATE, value))
+		//RETURN_ERROR("Unable to access registers");
+	response->set_word("buildTimestamp", value);
+
+	//if (!read_word(FW_GIT_HASH_CODE, value))
+		//RETURN_ERROR("Unable to access registers");
+	response->set_word("gitHashCode", value);
+
+	//if (!read_word(FW_GIT_HASH_DIRTY, value))
+		//RETURN_ERROR("Unable to access registers");
+	response->set_word("gitHashDirty", value);
+
+	//if (!read_word(FW_VERSION, value))
+		//RETURN_ERROR("Unable to access registers");
+	response->set_word("version", value);
+
+	//if (!read_word(FW_PROJECT_CODE, value))
+	//	RETURN_ERROR("Unable to access registers");
+	response->set_word("projectCode", value);
+
+	//if (!read_word(FW_UPTIME, value))
+	//	RETURN_ERROR("Unable to access registers");
+	response->set_word("uptime", value);
+
+}
+
 void getModuleBuildInfo(const RPCMsg *request, RPCMsg *response)
 {
 	response->set_string("result", BUILD_INFO);
@@ -822,6 +985,9 @@ extern "C" {
 		modmgr->register_method("UCTSummary", "setRunNumber", setRunNumber);
 		modmgr->register_method("UCTSummary", "hardReset", hardReset);
 		modmgr->register_method("UCTSummary","setDAQConfig", setDAQConfig);
+		modmgr->register_method("UCTSummary","getDAQStatus", getDAQStatus);
+		modmgr->register_method("UCTSummary", "getFWInfo", getFWInfo);
+		
 		modmgr->register_method("UCTSummary","alignTTCDecoder", alignTTCDecoder);
 
 		modmgr->register_method("UCTSummary","setInputLinkTowerMask", setInputLinkTowerMask);
@@ -837,6 +1003,7 @@ extern "C" {
 		modmgr->register_method("UCTSummary", "getInputLinkStatus", getInputLinkStatus);
 		modmgr->register_method("UCTSummary", "resetInputLinkDecoders", resetInputLinkDecoders);
 		modmgr->register_method("UCTSummary", "getTTCStatus", getTTCStatus);
+		modmgr->register_method("UCTSummary", "getTTCBGoCmdCnt", getTTCBGoCmdCnt);
 
 
 		modmgr->register_method("UCTSummary", "getInputLinkLUT", getInputLinkLUT);

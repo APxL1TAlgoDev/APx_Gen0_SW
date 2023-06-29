@@ -14,6 +14,8 @@ namespace CTP7Gen0RegMap {
   	 const int C_CH_to_CH_ADDR_OFFSET = 4 * 64;	
 	 const uint32_t POS_TO_NEG_REG_ADDR_OFFSET = 0x4000;
 
+	 
+
   	 const int C_LINK_STAT_CH0_ADDR         = 0x62000000;
   	 const int C_BXID_LINK_OFFSET_CH0_ADDR  = 0x62000004;
   	 const int C_LINK_MASK_CH0_ADDR         = 0x62000008;
@@ -232,6 +234,18 @@ namespace CTP7Gen0RegMap {
 	const uint32_t POS_LUT2S_XB_26 = 0x670C8000;
 	const uint32_t POS_LUT2S_XB_27 = 0x670D0000;
 	const uint32_t POS_LUT2S_XB_28 = 0x670D8000;
+
+
+	// V7 FW Build Details
+	const uint32_t FW_BUILD_DATE     = (0x6201FFE0);
+	const uint32_t FW_GIT_HASH_CODE  = (0x6201FFE4);
+	const uint32_t FW_GIT_HASH_DIRTY = (0x6201FFE8);
+	const uint32_t FW_VERSION        = (0x6201FFEC);
+	const uint32_t FW_PROJECT_CODE   = (0x6201FFFC);
+
+	// V7 FW Uptime (in seconds since configuration)
+	const uint32_t FW_UPTIME         = (0x6201FFF8);
+
        	
 	/////////////////////////////////////////////////////////////////////
 	// Input and output capture RAMs
