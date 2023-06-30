@@ -29,11 +29,13 @@ using namespace CTP7Gen0RegMap;
 #define VALIDATE_INPUT_LINK(il) VALIDATE_RANGE(il, 0, 68)
 #define VALIDATE_OUTPUT_LINK(ol) VALIDATE_RANGE(ol, 0, 47)
 
-#define CH_ADDR(reg, ch) ((reg) + ((ch)*C_CH_to_CH_ADDR_OFFSET) )
+//#define CH_ADDR(reg, ch) ((reg) + ((ch)*C_CH_to_CH_ADDR_OFFSET) )
+
+#define CH_ADDR(reg, ch, negeta) ((reg) + ((ch)*C_CH_to_CH_ADDR_OFFSET) + ((negeta)?POS_TO_NEG_REG_ADDR_OFFSET:0))
 #define LUT_CH_ADDR(reg, ch, negeta) ((reg) + ((ch)*CH_TO_CH_LUT_OFFSET) + ((negeta)?POS_TO_NEG_LUT_ADDR_OFFSET:0))
 #define LUT2S_CH_ADDR(reg, ch, negeta) ((reg) + ((ch)*CH_TO_CH_LUT2S_OFFSET) + ((negeta)?POS_TO_NEG_LUT2S_ADDR_OFFSET:0))
 
-//#define CH_ADDR(reg, ch, negeta) ((reg) + ((ch)*CH_TO_CH_REG_OFFSET) + ((negeta)?POS_TO_NEG_REG_ADDR_OFFSET:0))
+
 #define MGT_CH_ADDR(reg, ch) ((reg) + ((ch)*MGT_CH_TO_CH_REG_OFFSET))
 #define BRAM_CH_ADDR(reg, ch) ((reg) + ((ch)*BRAM_LINK_OFFSET))
 
@@ -102,12 +104,12 @@ void testUptime(const RPCMsg *request, RPCMsg *response)
 {
 
 	uint32_t uptimeData;
-    if (!read_word(CH_ADDR(C_UPTIME_CNT,0),uptimeData))
+    /*if (!read_word(CH_ADDR(C_UPTIME_CNT,0),uptimeData))
     {
         LOGGER->log_message(LogManager::ERROR, "Unable to read uptime data from Uptime Address");
         response->set_word("error", 1);
         return;
-    }
+    }*/
 	LOGGER->log_message(LogManager::INFO, stdsprintf("Uptime data successfully captured %d ", uptimeData));
     response->set_word("result", uptimeData);
 }
@@ -294,30 +296,40 @@ void setInputLinkAlignmentMask(const RPCMsg *request, RPCMsg *response)
 
 	uint32_t tt_mask; // trigger tower mask
 
-	/*if (!request->get_key_exists("mask"))
+	if (!request->get_key_exists("mask"))
 		RETURN_ERROR("Missing required parameter: mask");
 	std::vector<uint32_t> mask = request->get_word_array("mask");
-	VALIDATE_RANGE(mask.size(), 36, 36);
-	for (uint32_t link = 0; link < 36; link++)
-	{
-		// Input link masks
-		if (!write_word(CH_ADDR(RX_POS_ALIGN_MASK_CH0_ADDR, link, negativeEta), mask[link]))
-			RETURN_ERROR("Unable to access registers");
+	VALIDATE_RANGE(mask.size(), 32, 32);
 
-		// Mask all trigger towers in case input link mask is applied 
-		if ( mask[link] != 0)
+	if (negativeEta==0) 
+
 		{
-			if (link < 30)
-			   tt_mask = 0xFF; // ECAL/HCAL Barrel and Endcap (8 trigger towers per link)
-			else
-			   tt_mask = 0x7FF; // HF (11 trigger towers per link)
 
-          		if (!write_word(CH_ADDR(RX_POS_TT_MASK_CH0_ADDR, link, negativeEta), tt_mask))
-	         		RETURN_ERROR("Unable to access registers");
-		
-	}}*/
-	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to setInputLinkAlignmentMask "));
-	response->set_word("result", 1);
+			for (uint32_t link = 0; link < 24; link++)
+			{
+				// Input link masks
+				if (!write_word(CH_ADDR(C_LINK_MASK_CH0_ADDR, link, negativeEta), mask[link]))
+					RETURN_ERROR("Unable to access registers");
+
+			}
+			LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to setInputLinkAlignmentMask: ETA Negative"));
+		}
+
+	else if (negativeEta==1) 
+	
+		{
+
+			for (uint32_t link = 0; link < 32; link++)
+			{
+				
+				// Input link masks
+				if (!write_word(CH_ADDR(C_LINK_MASK_CH0_ADDR, link, negativeEta), mask[link]))
+					RETURN_ERROR("Unable to access registers");
+
+			}
+			LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to setInputLinkAlignmentMask: ETA positive"));
+		}
+	
 }
 
 void alignInputLinks(const RPCMsg *request, RPCMsg *response)
@@ -781,7 +793,7 @@ void maskRXLink(const RPCMsg *request, RPCMsg *response)
 	PARAM_WORD(link);
 	PARAM_WORD(mask);
 	
-	if (!write_word(CH_ADDR(C_LINK_MASK_CH0_ADDR, RXLinkMap[link]), mask)) RETURN_ERROR("Unable to access registers");
+	//if (!write_word(CH_ADDR(C_LINK_MASK_CH0_ADDR, RXLinkMap[link]), mask)) RETURN_ERROR("Unable to access registers");
 	response->set_word("result", 1);
 }
 

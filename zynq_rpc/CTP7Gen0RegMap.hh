@@ -12,13 +12,14 @@ namespace CTP7Gen0RegMap {
 	/////////////////////////////////////////////////////////////////////
 
   	 const int C_CH_to_CH_ADDR_OFFSET = 4 * 64;	
-	 const uint32_t POS_TO_NEG_REG_ADDR_OFFSET = 0x4000;
+	 const uint32_t POS_TO_NEG_REG_ADDR_OFFSET = 0x2E00;
 
 	 
 
   	 const int C_LINK_STAT_CH0_ADDR         = 0x62000000;
   	 const int C_BXID_LINK_OFFSET_CH0_ADDR  = 0x62000004;
-  	 const int C_LINK_MASK_CH0_ADDR         = 0x62000008;
+  	 const int C_LINK_MASK_CH0_ADDR         = 0x62000018;
+	 const int C_LINK_MASK_CHBP_ADDR        = 0x62002e18;
 
   	 const int C_TTC_MMCM_RST           = 0x62010000;
   	 const int C_TTC_MMCM_LOCKED        = 0x62010004;
