@@ -52,9 +52,9 @@ namespace CTP7Gen0RegMap {
   	 const int C_TTC_L1ID_CNT           = 0x62010070;
   	 const int C_TTC_ORBIT_CNT          = 0x62010074;
 
- 	 const int C_LINK_ALIGN_REQ         = 0x6201A000;
- 	 const int C_LINK_ALIGN_LAT         = 0x6201A004;
- 	 const int C_LINK_ALIGN_ERR         = 0x6201A008;
+ 	 const int C_LINK_ALIGN_REQ         = 0x6201A00C;
+ 	 const int C_LINK_ALIGN_LAT         = 0x6201A010;
+ 	 const int C_LINK_ALIGN_ERR         = 0x6201A014;
 
  	 const int C_ALGO_RESET             = 0x6201B000;
 
@@ -193,15 +193,6 @@ namespace CTP7Gen0RegMap {
 	const uint32_t POS_LUT_HF_40   = 0x66a4A000;
 	const uint32_t POS_LUT_HF_41   = 0x6604B000;
 
-
-	/////////////////////////////////////////////////////////////////////
-	// 2nd Stage LUT BRAM Address Definition
-	// Negative LUTs are located at POS_TO_NEG2S_LUT_ADDR_OFFSET offset apart from
-	// corresponding positive BRAMs
-	// I.e.: NEG_LUT2S_XB_1 = POS_LUT2S_XB_1 + POS_TO_NEG_LUT2S_ADDR_OFFSET
-	/////////////////////////////////////////////////////////////////////
-
-	// Channel to Channel (LUT) Offset
 	const uint32_t CH_TO_CH_LUT2S_OFFSET = 0x8000;
 
 	// Positive to Negative LUT Address Offset
@@ -237,6 +228,23 @@ namespace CTP7Gen0RegMap {
 	const uint32_t POS_LUT2S_XB_28 = 0x670D8000;
 
 
+	
+
+
+	/////////////////////////////////////////////////////////////////////
+	// 2nd Stage LUT BRAM Address Definition
+	// Negative LUTs are located at POS_TO_NEG2S_LUT_ADDR_OFFSET offset apart from
+	// corresponding positive BRAMs
+	// I.e.: NEG_LUT2S_XB_1 = POS_LUT2S_XB_1 + POS_TO_NEG_LUT2S_ADDR_OFFSET
+	/////////////////////////////////////////////////////////////////////
+
+	// Channel to Channel (LUT) Offset
+	//const uint32_t CH_TO_CH_LUT2S_OFFSET = 0x8000;
+
+	// Positive to Negative LUT Address Offset
+	//const uint32_t POS_TO_NEG_LUT2S_ADDR_OFFSET = 0x100000;
+
+	
 	// V7 FW Build Details
 	const uint32_t FW_BUILD_DATE     = (0x6201FFE0);
 	const uint32_t FW_GIT_HASH_CODE  = (0x6201FFE4);

@@ -334,8 +334,27 @@ void setInputLinkAlignmentMask(const RPCMsg *request, RPCMsg *response)
 
 void alignInputLinks(const RPCMsg *request, RPCMsg *response)
 {
-	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to alignInputLinks module "));
+	PARAM_WORD(negativeEta);
+	PARAM_WORD(bx);
+	PARAM_WORD(sub_bx);
+	PARAM_WORD(alignManual);
+
+	LOG_PARAM_4(negativeEta, bx, sub_bx, alignManual);
+
+	VALIDATE_RANGE(bx, 0, 3563);
+	VALIDATE_RANGE(sub_bx, 0, 5);
+
+	uint32_t internal_bx_align_point = bx * 4 + sub_bx;  //160 MHz clock
+
+	//if (!write_word(CH_ADDR(L1_POS_LINK_ALIGN_MODE,    0, negativeEta), (uint32_t)alignManual))        RETURN_ERROR("Unable to access registers");
+	if (!write_word(CH_ADDR(C_LINK_ALIGN_LAT, 0, negativeEta), internal_bx_align_point))   RETURN_ERROR("Unable to access registers");
+
+	if (!write_word(CH_ADDR(C_LINK_ALIGN_REQ, 0, negativeEta), 1)) RETURN_ERROR("Unable to access registers");
+	if (!write_word(CH_ADDR(C_LINK_ALIGN_REQ, 0, negativeEta), 0)) RETURN_ERROR("Unable to access registers");
+
 	response->set_word("result", 1);
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to alignInputLinks module "));
+	
 }
 
 void alignOutputLinks(const RPCMsg *request, RPCMsg *response)
