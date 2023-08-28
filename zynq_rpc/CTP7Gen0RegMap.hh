@@ -19,7 +19,8 @@ namespace CTP7Gen0RegMap {
   	 const int C_LINK_STAT_CH0_ADDR         = 0x62000000;
   	 const int C_BXID_LINK_OFFSET_CH0_ADDR  = 0x62000004;
   	 const int C_LINK_MASK_CH0_ADDR         = 0x62000018;
-	 const int C_LINK_MASK_CHBP_ADDR        = 0x62002e18;
+	 const int C_LINK_BP_STAT_CH0_ADDR      = 0x6200001C;
+	 const int C_LINK_BP_BX0ERROR_CH0_ADDR  = 0x62000020;
 
   	 const int C_TTC_MMCM_RST           = 0x62010000;
   	 const int C_TTC_MMCM_LOCKED        = 0x62010004;

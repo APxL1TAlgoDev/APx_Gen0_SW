@@ -299,12 +299,14 @@ void setInputLinkAlignmentMask(const RPCMsg *request, RPCMsg *response)
 	if (!request->get_key_exists("mask"))
 		RETURN_ERROR("Missing required parameter: mask");
 	std::vector<uint32_t> mask = request->get_word_array("mask");
-	VALIDATE_RANGE(mask.size(), 32, 32);
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to setInputLinkAlignmentMask command ETA positive or negative coming"));
 
+	VALIDATE_RANGE(mask.size(), 32, 32);
+	// CXP
 	if (negativeEta==0) 
 
 		{
-
+			LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to setInputLinkAlignmentMask: ETA Negative chk"));
 			for (uint32_t link = 0; link < 24; link++)
 			{
 				// Input link masks
@@ -312,13 +314,13 @@ void setInputLinkAlignmentMask(const RPCMsg *request, RPCMsg *response)
 					RETURN_ERROR("Unable to access registers");
 
 			}
-			LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to setInputLinkAlignmentMask: ETA Negative"));
+			
 		}
-
+	//back plane
 	else if (negativeEta==1) 
 	
 		{
-
+			LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to setInputLinkAlignmentMask: ETA positive chk"));
 			for (uint32_t link = 0; link < 32; link++)
 			{
 				
@@ -327,7 +329,7 @@ void setInputLinkAlignmentMask(const RPCMsg *request, RPCMsg *response)
 					RETURN_ERROR("Unable to access registers");
 
 			}
-			LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to setInputLinkAlignmentMask: ETA positive"));
+			
 		}
 	
 }
@@ -344,16 +346,16 @@ void alignInputLinks(const RPCMsg *request, RPCMsg *response)
 	VALIDATE_RANGE(bx, 0, 3563);
 	VALIDATE_RANGE(sub_bx, 0, 5);
 
-	uint32_t internal_bx_align_point = bx * 4 + sub_bx;  //160 MHz clock
+	uint32_t internal_bx_align_point = bx * 4 + sub_bx - 1;  //160 MHz clock
 
 	//if (!write_word(CH_ADDR(L1_POS_LINK_ALIGN_MODE,    0, negativeEta), (uint32_t)alignManual))        RETURN_ERROR("Unable to access registers");
 	if (!write_word(CH_ADDR(C_LINK_ALIGN_LAT, 0, negativeEta), internal_bx_align_point))   RETURN_ERROR("Unable to access registers");
 
 	if (!write_word(CH_ADDR(C_LINK_ALIGN_REQ, 0, negativeEta), 1)) RETURN_ERROR("Unable to access registers");
 	if (!write_word(CH_ADDR(C_LINK_ALIGN_REQ, 0, negativeEta), 0)) RETURN_ERROR("Unable to access registers");
-
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to alignInputLinks module updated "));
 	response->set_word("result", 1);
-	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to alignInputLinks module "));
+	
 	
 }
 
@@ -378,46 +380,183 @@ void resetInputLinkChecksumErrorCounters(const RPCMsg *request, RPCMsg *response
 void getInputLinkAlignmentStatus(const RPCMsg *request, RPCMsg *response)
 {
 	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to getInputLink alignment status  "));
-	uint32_t alignStatus=0;
+	PARAM_WORD(negativeEta);
+	uint32_t alignStatus;
+	if (!read_word(CH_ADDR(C_LINK_ALIGN_ERR, 0, negativeEta), alignStatus))
+		RETURN_ERROR("Unable to access registers");
 	response->set_word("result", alignStatus);
+
 }
 
 void getInputLinkStatus(const RPCMsg *request, RPCMsg *response)
 {
-	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to getInputLink  status  "));
-
-	
-	
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to getInputLink status  "));
+	// C_LINK_BP_STAT_CH0_ADDR 
+	PARAM_WORD(negativeEta);
 	std::vector<uint32_t> rawLinkStatus, checkSumErrorCount, bx0ErrorCount, bx0Latency, alignmentMask, towerMask;
-	for (int i = 0; i < 32; i++)
-	{
-		uint32_t word;
+	uint32_t word;
+	//CXP
+	if (negativeEta==0) 
 
-		
-		rawLinkStatus.push_back(word);
+		{
+			LOGGER->log_message(LogManager::INFO, stdsprintf(" Eta positive raw link status push back  "));
+			for (int i = 0; i < 24; i++)
+				{	
+			//LOGGER->log_message(LogManager::INFO, stdsprintf(" Eta positive raw link status push back  %d ", i));
 
-		
-		checkSumErrorCount.push_back(word);
+					if (!read_word(CH_ADDR(C_LINK_BP_STAT_CH0_ADDR , i, negativeEta), word))
+						RETURN_ERROR("Unable to access registers");
+					// Extract the first and second bits of 'word'
+					bool bit0 = (word >> 0) & 1; // Extract the 0th bit
+					bool bit1 = (word >> 1) & 1; // Extract the 1st bit
 
-		
-		bx0ErrorCount.push_back(word);
+					// Extract the 8th, 11th, 12th, 13th, and 14th bits of 'word'
+					bool bit8 = (word >> 8) & 1;  // Extract the 8th bit
+					bool bit11 = (word >> 11) & 1; // Extract the 11th bit
+					bool bit12 = (word >> 12) & 1; // Extract the 12th bit
+					bool bit13 = (word >> 13) & 1; // Extract the 13th bit
+					bool bit14 = (word >> 14) & 1; // Extract the 14th bit
 
-		
-		bx0Latency.push_back(word);
+					// Perform AND operation on the extracted bits
+					bool andResult = bit8 | bit11 | bit12 | bit13 | bit14;
 
-		
-		alignmentMask.push_back(word);
+						// Perform AND operation on extracted bits
+					bool resultBit = bit0 & bit1;
 
-		
-		towerMask.push_back(word);
-	}
+					// Calculate the result based on AND operation and 'resultBit'
+					bool finalResult = !andResult && resultBit; // Multiply by negating resultBit
+
+
+						// Set the 0th bit of 'word' based on the AND operation result
+					word &= ~(1 << 0); // Clear the 0th bit
+					word |= (finalResult << 0); // Set the 0th bit b	
+					rawLinkStatus.push_back(word);
+					
+					if (!read_word(CH_ADDR(C_LINK_BP_STAT_CH0_ADDR , i, negativeEta), word))
+						RETURN_ERROR("Unable to access registers");
+					checkSumErrorCount.push_back(word);
+
+					if (!read_word(CH_ADDR(C_LINK_BP_BX0ERROR_CH0_ADDR , i, negativeEta), word))
+						RETURN_ERROR("Unable to access registers");
+					bx0ErrorCount.push_back(word);
+
+					if (!read_word(CH_ADDR(C_LINK_ALIGN_LAT , i, negativeEta), word))
+						RETURN_ERROR("Unable to access registers");
+					bx0Latency.push_back(word);
+
+					if (!read_word(CH_ADDR(C_LINK_MASK_CH0_ADDR, i, negativeEta), word))
+						RETURN_ERROR("Unable to access registers");
+					alignmentMask.push_back(word);
+
+					if (!read_word(CH_ADDR(C_LINK_MASK_CH0_ADDR, i, negativeEta), word))
+						RETURN_ERROR("Unable to access registers");
+					towerMask.push_back(word);
+				}
+	
 	response->set_word_array("rawLinkStatus", rawLinkStatus);
 	response->set_word_array("checkSumErrorCount", checkSumErrorCount);
 	response->set_word_array("bx0ErrorCount", bx0ErrorCount);
 	response->set_word_array("bx0Latency", bx0Latency);
 	response->set_word_array("alignmentMask", alignmentMask);
 	response->set_word_array("towerMask", towerMask);
-	response->set_word("result", 1);
+	}
+	//backplane
+	else if (negativeEta==1) 
+			
+		{
+			std::vector<int> channelsOfInterest;
+			channelsOfInterest.push_back(0);
+			channelsOfInterest.push_back(2);
+			channelsOfInterest.push_back(8);
+			channelsOfInterest.push_back(9);
+			channelsOfInterest.push_back(20);
+			channelsOfInterest.push_back(21);
+			channelsOfInterest.push_back(22);
+			channelsOfInterest.push_back(24);
+			channelsOfInterest.push_back(25);
+			channelsOfInterest.push_back(26);
+			channelsOfInterest.push_back(28);
+			channelsOfInterest.push_back(30);
+			LOGGER->log_message(LogManager::INFO, stdsprintf(" Eta negative raw link status push back  "));
+
+			for (int i = 0; i < 32; i++)
+				{	
+			//LOGGER->log_message(LogManager::INFO, stdsprintf(" Eta positive raw link status push back  %d ", i));
+					bool isChannelOfInterest = false;
+        			for (size_t j = 0; j < channelsOfInterest.size(); j++) {
+            			if (channelsOfInterest[j] == i) {
+                			isChannelOfInterest = true;
+                			break;
+            				}
+        			}
+
+					if (isChannelOfInterest)
+
+        			{
+
+						if (!read_word(CH_ADDR(C_LINK_BP_STAT_CH0_ADDR , i, negativeEta), word))
+							RETURN_ERROR("Unable to access registers");
+							// Extract the first and second bits of 'word'
+						bool bit0 = (word >> 0) & 1; // Extract the 0th bit
+						bool bit1 = (word >> 1) & 1; // Extract the 1st bit
+
+						// Extract the 8th, 11th, 12th, 13th, and 14th bits of 'word'
+						bool bit8 = (word >> 8) & 1;  // Extract the 8th bit
+						bool bit11 = (word >> 11) & 1; // Extract the 11th bit
+						bool bit12 = (word >> 12) & 1; // Extract the 12th bit
+						bool bit13 = (word >> 13) & 1; // Extract the 13th bit
+						bool bit14 = (word >> 14) & 1; // Extract the 14th bit
+
+						// Perform AND operation on the extracted bits
+						bool andResult = bit8 & bit11 & bit12 & bit13 & bit14;
+
+							// Perform AND operation on extracted bits
+						bool resultBit = bit0 & bit1;
+
+						// Calculate the result based on AND operation and 'resultBit'
+						bool finalResult = andResult && !resultBit; // Multiply by negating resultBit
+
+
+							// Set the 0th bit of 'word' based on the AND operation result
+						word &= ~(1 << 0); // Clear the 0th bit
+						word |= (finalResult << 0); // Set the 0th bit b	
+						rawLinkStatus.push_back(word);
+									
+						
+						if (!read_word(CH_ADDR(C_LINK_BP_STAT_CH0_ADDR , i, negativeEta), word))
+							RETURN_ERROR("Unable to access registers");
+						checkSumErrorCount.push_back(word);
+
+						if (!read_word(CH_ADDR(C_LINK_BP_BX0ERROR_CH0_ADDR , i, negativeEta), word))
+							RETURN_ERROR("Unable to access registers");
+						bx0ErrorCount.push_back(word);
+
+						if (!read_word(CH_ADDR(C_LINK_ALIGN_LAT , i, negativeEta), word))
+							RETURN_ERROR("Unable to access registers");
+						bx0Latency.push_back(word);
+
+						if (!read_word(CH_ADDR(C_LINK_MASK_CH0_ADDR, i, negativeEta), word))
+							RETURN_ERROR("Unable to access registers");
+						alignmentMask.push_back(word);
+
+						if (!read_word(CH_ADDR(C_LINK_MASK_CH0_ADDR, i, negativeEta), word))
+							RETURN_ERROR("Unable to access registers");
+						towerMask.push_back(word);
+					}
+					
+				}
+	
+	response->set_word_array("rawLinkStatus", rawLinkStatus);
+	response->set_word_array("checkSumErrorCount", checkSumErrorCount);
+	response->set_word_array("bx0ErrorCount", bx0ErrorCount);
+	response->set_word_array("bx0Latency", bx0Latency);
+	response->set_word_array("alignmentMask", alignmentMask);
+	response->set_word_array("towerMask", towerMask);
+	}
+	
+	
+	
+	
 }
 
 void resetInputLinkDecoders(const RPCMsg *request, RPCMsg *response)
@@ -710,7 +849,7 @@ void hardReset(const RPCMsg *request, RPCMsg *response)
 
         // Invalidate configuration string as part of hard reset
 	std::string confstr = "null";
-	FILE *fd = fopen("/tmp/UCTSummary-configdata.txt", "w");
+	FILE *fd = fopen("/tmp/UCT2016Layer1-configdata.txt", "w");
 	if (!fd)
 		RETURN_ERROR("Unable to open configdata file");
 	if (fwrite(confstr.data(), confstr.size(), 1, fd) != 1)
@@ -1001,10 +1140,11 @@ void getModuleBuildInfo(const RPCMsg *request, RPCMsg *response)
 }
 
 extern "C" {
-	const char *module_version_key = "UCTSummary v1.1.0";
+	const char *module_version_key = "UCT2016Layer1 v1.1.0";
 	int module_activity_color = 5;
 	void module_init(ModuleManager *modmgr)
-	{
+	
+	{	
 		if (memsvc_open(&memsvc) != 0)
 		{
 			LOGGER->log_message(LogManager::ERROR, stdsprintf("Unable to connect to memory service: %s", memsvc_get_last_error(memsvc)));
@@ -1012,64 +1152,64 @@ extern "C" {
 			return;
 		}
 
-		modmgr->register_method("UCTSummary", "ping", ping);
-		modmgr->register_method("UCTSummary", "setRunNumber", setRunNumber);
-		modmgr->register_method("UCTSummary", "hardReset", hardReset);
-		modmgr->register_method("UCTSummary","setDAQConfig", setDAQConfig);
-		modmgr->register_method("UCTSummary","getDAQStatus", getDAQStatus);
-		modmgr->register_method("UCTSummary", "getFWInfo", getFWInfo);
+		modmgr->register_method("UCT2016Layer1", "ping", ping);
+		modmgr->register_method("UCT2016Layer1", "setRunNumber", setRunNumber);
+		modmgr->register_method("UCT2016Layer1", "hardReset", hardReset);
+		modmgr->register_method("UCT2016Layer1","setDAQConfig", setDAQConfig);
+		modmgr->register_method("UCT2016Layer1","getDAQStatus", getDAQStatus);
+		modmgr->register_method("UCT2016Layer1", "getFWInfo", getFWInfo);
 		
-		modmgr->register_method("UCTSummary","alignTTCDecoder", alignTTCDecoder);
+		modmgr->register_method("UCT2016Layer1","alignTTCDecoder", alignTTCDecoder);
 
-		modmgr->register_method("UCTSummary","setInputLinkTowerMask", setInputLinkTowerMask);
-		modmgr->register_method("UCTSummary","getInputLinkTowerMask", getInputLinkTowerMask);
-		modmgr->register_method("UCTSummary", "setInputLinkAlignmentMask", setInputLinkAlignmentMask);
-		modmgr->register_method("UCTSummary", "setTMTCycle", setTMTCycle);
+		modmgr->register_method("UCT2016Layer1","setInputLinkTowerMask", setInputLinkTowerMask);
+		modmgr->register_method("UCT2016Layer1","getInputLinkTowerMask", getInputLinkTowerMask);
+		modmgr->register_method("UCT2016Layer1", "setInputLinkAlignmentMask", setInputLinkAlignmentMask);
+		modmgr->register_method("UCT2016Layer1", "setTMTCycle", setTMTCycle);
 
-		modmgr->register_method("UCTSummary", "alignInputLinks", alignInputLinks);
-		modmgr->register_method("UCTSummary", "alignOutputLinks", alignOutputLinks);
-		modmgr->register_method("UCTSummary", "resetInputLinkChecksumErrorCounters", resetInputLinkChecksumErrorCounters);
-		modmgr->register_method("UCTSummary", "resetInputLinkBX0ErrorCounters", resetInputLinkBX0ErrorCounters);
-		modmgr->register_method("UCTSummary", "getInputLinkAlignmentStatus", getInputLinkAlignmentStatus);
-		modmgr->register_method("UCTSummary", "getInputLinkStatus", getInputLinkStatus);
-		modmgr->register_method("UCTSummary", "resetInputLinkDecoders", resetInputLinkDecoders);
-		modmgr->register_method("UCTSummary", "getTTCStatus", getTTCStatus);
-		modmgr->register_method("UCTSummary", "getTTCBGoCmdCnt", getTTCBGoCmdCnt);
+		modmgr->register_method("UCT2016Layer1", "alignInputLinks", alignInputLinks);
+		modmgr->register_method("UCT2016Layer1", "alignOutputLinks", alignOutputLinks);
+		modmgr->register_method("UCT2016Layer1", "resetInputLinkChecksumErrorCounters", resetInputLinkChecksumErrorCounters);
+		modmgr->register_method("UCT2016Layer1", "resetInputLinkBX0ErrorCounters", resetInputLinkBX0ErrorCounters);
+		modmgr->register_method("UCT2016Layer1", "getInputLinkAlignmentStatus", getInputLinkAlignmentStatus);
+		modmgr->register_method("UCT2016Layer1", "getInputLinkStatus", getInputLinkStatus);
+		modmgr->register_method("UCT2016Layer1", "resetInputLinkDecoders", resetInputLinkDecoders);
+		modmgr->register_method("UCT2016Layer1", "getTTCStatus", getTTCStatus);
+		modmgr->register_method("UCT2016Layer1", "getTTCBGoCmdCnt", getTTCBGoCmdCnt);
 
 
-		modmgr->register_method("UCTSummary", "getInputLinkLUT", getInputLinkLUT);
-		modmgr->register_method("UCTSummary", "setInputLinkLUT", setInputLinkLUT);
+		modmgr->register_method("UCT2016Layer1", "getInputLinkLUT", getInputLinkLUT);
+		modmgr->register_method("UCT2016Layer1", "setInputLinkLUT", setInputLinkLUT);
 
-		modmgr->register_method("UCTSummary", "getInputLinkLUT2S", getInputLinkLUT2S);
-		modmgr->register_method("UCTSummary", "setInputLinkLUT2S", setInputLinkLUT2S);
+		modmgr->register_method("UCT2016Layer1", "getInputLinkLUT2S", getInputLinkLUT2S);
+		modmgr->register_method("UCT2016Layer1", "setInputLinkLUT2S", setInputLinkLUT2S);
 		
-		modmgr->register_method("UCTSummary", "getInputLinkLUTHcalFb", getInputLinkLUTHcalFb);
-		modmgr->register_method("UCTSummary", "setInputLinkLUTHcalFb", setInputLinkLUTHcalFb);
+		modmgr->register_method("UCT2016Layer1", "getInputLinkLUTHcalFb", getInputLinkLUTHcalFb);
+		modmgr->register_method("UCT2016Layer1", "setInputLinkLUTHcalFb", setInputLinkLUTHcalFb);
 		
 
 
 
-		modmgr->register_method("UCTSummary","testUptime", testUptime);
-		modmgr->register_method("UCTSummary","setConfiguration", setConfiguration);
-		modmgr->register_method("UCTSummary","getConfiguration", getConfiguration);
+		modmgr->register_method("UCT2016Layer1","testUptime", testUptime);
+		modmgr->register_method("UCT2016Layer1","setConfiguration", setConfiguration);
+		modmgr->register_method("UCT2016Layer1","getConfiguration", getConfiguration);
 		
-		modmgr->register_method("UCTSummary", "getInputLinkBuffer", getInputLinkBuffer);
-		modmgr->register_method("UCTSummary", "setInputLinkBuffer", setInputLinkBuffer);
-		modmgr->register_method("UCTSummary", "getOutputLinkBuffer", getOutputLinkBuffer);
-		modmgr->register_method("UCTSummary", "setOutputLinkBuffer", setOutputLinkBuffer);
+		modmgr->register_method("UCT2016Layer1", "getInputLinkBuffer", getInputLinkBuffer);
+		modmgr->register_method("UCT2016Layer1", "setInputLinkBuffer", setInputLinkBuffer);
+		modmgr->register_method("UCT2016Layer1", "getOutputLinkBuffer", getOutputLinkBuffer);
+		modmgr->register_method("UCT2016Layer1", "setOutputLinkBuffer", setOutputLinkBuffer);
 		
-		modmgr->register_method("UCTSummary", "setTxPower", setTxPower);
-//		modmgr->register_method("UCTSummary", "configRefClk", configRefClk);
-//		modmgr->register_method("UCTSummary", "configMGTs", configMGTs);
+		modmgr->register_method("UCT2016Layer1", "setTxPower", setTxPower);
+//		modmgr->register_method("UCT2016Layer1", "configRefClk", configRefClk);
+//		modmgr->register_method("UCT2016Layer1", "configMGTs", configMGTs);
 
-//		modmgr->register_method("UCTSummary", "algoReset", algoReset);
-// 	 	modmgr->register_method("UCTSummary", "maskRXLink", maskRXLink);
-//		modmgr->register_method("UCTSummary", "alignInputLinks", alignInputLinks);
-		modmgr->register_method("UCTSummary", "configureRXLinkBuffer", configureRXLinkBuffer);
-		modmgr->register_method("UCTSummary", "configureTXLinkBuffer", configureTXLinkBuffer);
-		modmgr->register_method("UCTSummary", "reqRXLinkBufferCapture", reqRXLinkBufferCapture);
-		modmgr->register_method("UCTSummary", "reqTXLinkBufferCapture", reqTXLinkBufferCapture);
-		modmgr->register_method("UCTSummary", "getModuleBuildInfo", getModuleBuildInfo);
+//		modmgr->register_method("UCT2016Layer1", "algoReset", algoReset);
+// 	 	modmgr->register_method("UCT2016Layer1", "maskRXLink", maskRXLink);
+//		modmgr->register_method("UCT2016Layer1", "alignInputLinks", alignInputLinks);
+		modmgr->register_method("UCT2016Layer1", "configureRXLinkBuffer", configureRXLinkBuffer);
+		modmgr->register_method("UCT2016Layer1", "configureTXLinkBuffer", configureTXLinkBuffer);
+		modmgr->register_method("UCT2016Layer1", "reqRXLinkBufferCapture", reqRXLinkBufferCapture);
+		modmgr->register_method("UCT2016Layer1", "reqTXLinkBufferCapture", reqTXLinkBufferCapture);
+		modmgr->register_method("UCT2016Layer1", "getModuleBuildInfo", getModuleBuildInfo);
 		}
 	}
 }	
