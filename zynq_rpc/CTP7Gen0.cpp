@@ -307,7 +307,7 @@ void setInputLinkAlignmentMask(const RPCMsg *request, RPCMsg *response)
 
 		{
 			LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to setInputLinkAlignmentMask: ETA Negative chk"));
-			for (uint32_t link = 0; link < 24; link++)
+			for (uint32_t link = 0; link < 32; link++)
 			{
 				// Input link masks
 				if (!write_word(CH_ADDR(C_LINK_MASK_CH0_ADDR, link, negativeEta), mask[link]))
@@ -429,12 +429,13 @@ void getInputLinkStatus(const RPCMsg *request, RPCMsg *response)
 
 						// Set the 0th bit of 'word' based on the AND operation result
 					word &= ~(1 << 0); // Clear the 0th bit
-					word |= (finalResult << 0); // Set the 0th bit b	
+					word |= (finalResult << 0); // Set the 0th bit b
+					LOGGER->log_message(LogManager::INFO, stdsprintf(" Eta positive raw link status   %d link, word %d  ", i,word));	
 					rawLinkStatus.push_back(word);
 					
 					if (!read_word(CH_ADDR(C_LINK_BP_STAT_CH0_ADDR , i, negativeEta), word))
 						RETURN_ERROR("Unable to access registers");
-					checkSumErrorCount.push_back(word);
+					checkSumErrorCount.push_back(0);
 
 					if (!read_word(CH_ADDR(C_LINK_BP_BX0ERROR_CH0_ADDR , i, negativeEta), word))
 						RETURN_ERROR("Unable to access registers");
@@ -450,8 +451,27 @@ void getInputLinkStatus(const RPCMsg *request, RPCMsg *response)
 
 					if (!read_word(CH_ADDR(C_LINK_MASK_CH0_ADDR, i, negativeEta), word))
 						RETURN_ERROR("Unable to access registers");
-					towerMask.push_back(word);
+					towerMask.push_back(0);
 				}
+
+
+			for (int i = 24; i <= 31; i++)
+    			{
+        			word = 0; // Initialize word as 0
+
+        			// Set the first bit of 'word' to 1
+       				 word |= (1 << 0);
+					LOGGER->log_message(LogManager::INFO, stdsprintf(" Eta positive raw link status   %d link, word %d  ", i,word));
+        			// Set zero values for other registers
+        			checkSumErrorCount.push_back(0);
+        			bx0ErrorCount.push_back(0);
+        			bx0Latency.push_back(0);
+        			alignmentMask.push_back(0);
+        			towerMask.push_back(0);
+
+        // Push the modified word into rawLinkStatus vector
+        			rawLinkStatus.push_back(word);
+    			}
 	
 	response->set_word_array("rawLinkStatus", rawLinkStatus);
 	response->set_word_array("checkSumErrorCount", checkSumErrorCount);
@@ -469,17 +489,17 @@ void getInputLinkStatus(const RPCMsg *request, RPCMsg *response)
 			channelsOfInterest.push_back(2);
 			channelsOfInterest.push_back(8);
 			channelsOfInterest.push_back(9);
-			channelsOfInterest.push_back(20);
 			channelsOfInterest.push_back(21);
 			channelsOfInterest.push_back(22);
-			channelsOfInterest.push_back(24);
+			channelsOfInterest.push_back(23);
 			channelsOfInterest.push_back(25);
 			channelsOfInterest.push_back(26);
-			channelsOfInterest.push_back(28);
-			channelsOfInterest.push_back(30);
-			LOGGER->log_message(LogManager::INFO, stdsprintf(" Eta negative raw link status push back  "));
+			channelsOfInterest.push_back(27);
+			channelsOfInterest.push_back(29);
+			channelsOfInterest.push_back(31);
+			//LOGGER->log_message(LogManager::INFO, stdsprintf(" Eta negative raw link status push back  "));
 
-			for (int i = 0; i < 32; i++)
+		for (int i = 0; i < 32; i++)
 				{	
 			//LOGGER->log_message(LogManager::INFO, stdsprintf(" Eta positive raw link status push back  %d ", i));
 					bool isChannelOfInterest = false;
@@ -499,7 +519,8 @@ void getInputLinkStatus(const RPCMsg *request, RPCMsg *response)
 							// Extract the first and second bits of 'word'
 						bool bit0 = (word >> 0) & 1; // Extract the 0th bit
 						bool bit1 = (word >> 1) & 1; // Extract the 1st bit
-
+						//LOGGER->log_message(LogManager::INFO, stdsprintf(" Eta negative raw link status   0th bit %d  ", bit0));
+						//LOGGER->log_message(LogManager::INFO, stdsprintf(" Eta negative raw link status   1st bit %d  ", bit1));
 						// Extract the 8th, 11th, 12th, 13th, and 14th bits of 'word'
 						bool bit8 = (word >> 8) & 1;  // Extract the 8th bit
 						bool bit11 = (word >> 11) & 1; // Extract the 11th bit
@@ -508,18 +529,20 @@ void getInputLinkStatus(const RPCMsg *request, RPCMsg *response)
 						bool bit14 = (word >> 14) & 1; // Extract the 14th bit
 
 						// Perform AND operation on the extracted bits
-						bool andResult = bit8 & bit11 & bit12 & bit13 & bit14;
-
+						bool andResult = bit8 | bit11 | bit12 | bit13 | bit14;
+						//LOGGER->log_message(LogManager::INFO, stdsprintf(" Eta negative raw link status   and result %d  ", andResult));
 							// Perform AND operation on extracted bits
 						bool resultBit = bit0 & bit1;
-
+						//LOGGER->log_message(LogManager::INFO, stdsprintf(" Eta negative raw link status   result bit %d  ", resultBit));
 						// Calculate the result based on AND operation and 'resultBit'
-						bool finalResult = andResult && !resultBit; // Multiply by negating resultBit
-
-
+						bool finalResult = !andResult && resultBit; // Multiply by negating resultBit
+						//LOGGER->log_message(LogManager::INFO, stdsprintf(" Eta negative raw link status   finalResult %d  ", finalResult));
+						
 							// Set the 0th bit of 'word' based on the AND operation result
 						word &= ~(1 << 0); // Clear the 0th bit
-						word |= (finalResult << 0); // Set the 0th bit b	
+						word |= (finalResult << 0); // Set the 0th bit b
+						LOGGER->log_message(LogManager::INFO, stdsprintf(" Eta negative raw link status   %d link, word %d \n  ", i,word));
+						
 						rawLinkStatus.push_back(word);
 									
 						
@@ -543,7 +566,26 @@ void getInputLinkStatus(const RPCMsg *request, RPCMsg *response)
 							RETURN_ERROR("Unable to access registers");
 						towerMask.push_back(word);
 					}
-					
+
+					else
+
+					{
+						word = 0; // Initialize word as 0
+
+        				// Set the first bit of 'word' to 1
+       				 	word |= (1 << 0);
+						LOGGER->log_message(LogManager::INFO, stdsprintf(" Eta negative raw link status   %d link, word %d  ", i,word));
+        				// Set zero values for other registers
+        				checkSumErrorCount.push_back(0);
+        				bx0ErrorCount.push_back(0);
+        				bx0Latency.push_back(0);
+        				alignmentMask.push_back(0);
+        				towerMask.push_back(0);
+
+        // Push the modified word into rawLinkStatus vector
+        				rawLinkStatus.push_back(word);
+
+						}
 				}
 	
 	response->set_word_array("rawLinkStatus", rawLinkStatus);
