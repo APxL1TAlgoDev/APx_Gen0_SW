@@ -69,7 +69,11 @@ int main(int argc, char *argv[])
 	for (int word = 0; word < 1024; word++)
 	{
 		fprintf(fd, "0x%04x   ", word);
+<<<<<<< HEAD
 		for (int link = 0; link < 1; link++)
+=======
+		for (int link = 0; link < 36; link++)
+>>>>>>> eb7d4ba5367b521d77d7e16e942ed03247cb5753
 		{
 		         word32_lsw = output_link_data[link][word];
 			//word32_lsw = output_link_data[link][word*2];

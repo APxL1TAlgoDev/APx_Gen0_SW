@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
 	{
 		rc = card->setInputLinkBuffer(link, input_data[link].data);
         if (rc == false) {
-             std::cout << "setInputLinkBuffer fails for link " << link << std::endl;
+           //  std::cout << "setInputLinkBuffer fails for link " << link << std::endl;
              return -1;
         }
 	}
