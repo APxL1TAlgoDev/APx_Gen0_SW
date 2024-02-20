@@ -105,7 +105,7 @@ namespace CTP7Gen0RegMap {
 
 	const uint32_t INPUT_BRAM_0   = 0x61000000;   // RX link 0
 
-	const uint32_t OUTPUT_BRAM_0  = 0x61060000;   // TX link 0
+	const uint32_t OUTPUT_BRAM_0  = 0x61040000;   // TX link 0
 
 	/////////////////////////////////////////////////////////////////////
 

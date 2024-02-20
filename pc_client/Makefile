@@ -46,7 +46,7 @@ client_dev.tbz2:
 .SECONDARY: client_dev.tbz2
 
 clean:
-	rm -rf rpcsvc_client_dev/ layer1_config layer2_config card_config download_inputs download_outputs upload_inputs testapp *.so *.o
+	rm -rf rpcsvc_client_dev/ layer1_config layer2_config card_config download_inputs download_outputs upload_inputs  data/real_inputs.txt testapp *.so *.o
 
 distclean: clean
 	rm -f client_dev.tbz2

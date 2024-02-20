@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 		printf("Couldnt connect to phi %d: %s\n", phi, e.what());
 	}
 
-	for (int lnk=0; lnk<32; lnk++)
+	/*for (int lnk=0; lnk<32; lnk++)
 	{
 		rc = card->maskRXLink(lnk, 1); 
 		if (rc != 1)
@@ -48,9 +48,9 @@ int main(int argc, char *argv[])
 	{
 		printf("configRefClk failed. \n\r");
 		return 1;
-	}
+	}*/
 
-	rc = card->configureRXLinkBuffer(0); 
+	rc = card->configureRXLinkBuffer(1); 
 	if (rc != 1)
 	{
 		printf("configureRXLinkBuffer failed. \n\r");
