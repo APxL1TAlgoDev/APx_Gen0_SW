@@ -18,14 +18,16 @@ LDLIBS= -L$(PETA_STAGE)/stage/lib \
 
 CXX=arm-linux-gnueabihf-g++
 
-all: CTP7Gen0.so
+all: S3_Summ.so
 
 BUILDINFO_DATA = "Build\t$(shell cat /proc/sys/kernel/random/uuid)\nOn\t$(shell date)\nBy\t$(shell whoami)@$(shell hostname --fqdn)\nFrom\t$(shell git rev-parse --abbrev-ref HEAD)@$(shell git rev-parse HEAD) $(shell git status --porcelain | egrep -q "^[^?]" && echo dirty || echo clean)\n"
 export BUILDINFO_DATA
 
-%.so: %.cpp rpcsvc_module_dev/RPCSVC_MANIFEST CTP7Gen0RegMap.hh
-	$(CXX) $(CFLAGS) $(LDFLAGS) -fPIC -shared -o $@ $< -DBUILD_INFO="$$BUILDINFO_DATA"
+#%.so: %.cpp rpcsvc_module_dev/RPCSVC_MANIFEST CTP7Gen0RegMap.hh
+#	$(CXX) $(CFLAGS) $(LDFLAGS) -fPIC -shared -o $@ $< -DBUILD_INFO="$$BUILDINFO_DATA"
 
+S3_Summ.so: CTP7Gen0.cpp rpcsvc_module_dev/RPCSVC_MANIFEST CTP7Gen0RegMap.hh
+	$(CXX) $(CFLAGS) $(LDFLAGS) -fPIC -shared -o $@ $< -DBUILD_INFO="$$BUILDINFO_DATA"
 rpcsvc_module_dev/RPCSVC_MANIFEST: module_dev.tbz2
 	@rm -rf rpcsvc_module_dev/
 	tar -xjf $<
