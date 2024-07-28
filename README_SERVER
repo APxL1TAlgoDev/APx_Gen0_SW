@@ -1,0 +1,30 @@
+#checkout
+
+#Clone the Directory
+
+git  clone --recursive git@github.com:APxL1TAlgoDev/APx_Gen0_SW.git -b CICADA_User_Apps
+
+#Move to the checkout folder and then step into the following subfolder 
+
+cd APx_Gen0_SW/zynq_rpc
+
+#Source the environment
+
+source /opt/petalinux-v2016.1-final/settings.sh
+
+#Copy the archive from the remote CTP7 card
+
+scp <CTP7>:/mnt/image-persist/linux_stage.tbz2 .    
+# i.e. <CTP7> = root@eagle46
+
+#Extract the archive in the same folder
+tar -xjvf  linux_stage.tbz2
+
+#Generate the rpc service module
+
+make clean
+
+make 
+
+
+
