@@ -1,0 +1,36 @@
+#Checkout
+
+#Clone the Directory
+
+git  clone --recursive git@github.com:APxL1TAlgoDev/APx_Gen0_SW.git -b CICADA_User_Apps
+
+#Log onto Krieger System
+
+
+#Move to the checkout folder and then step into the following subfolder 
+
+cd APx_Gen0_SW/pc_client
+
+#Source the environment
+
+source env.sh
+
+
+#Generate the apps
+
+make clean
+
+make
+
+
+#Then the following apps must be available in the same folder namely download_inputs and upload_inputs
+
+#Execute the following tools
+
+./download_inputs
+
+
+
+
+
+
