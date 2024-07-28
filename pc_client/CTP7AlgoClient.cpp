@@ -245,6 +245,14 @@ bool CTP7AlgoClient::getOutputLinkBuffer(int link, std::vector<uint32_t> &select
 	                 );
 }
 
+bool CTP7AlgoClient::getOutput10GLinkBuffer(int link, std::vector<uint32_t> &selectedData)
+{
+	TYPE_GENERIC_CALL(word_array, selectedData,
+	                  RPCMsg(module_name + ".getOutput10GLinkBuffer")
+	                  .set_word("link", link)
+	                 );
+}
+
 bool CTP7AlgoClient::setOutputLinkBuffer( int link, const std::vector<uint32_t> &selectedData)
 {
 	GENERIC_CALL(RPCMsg(module_name + ".setOutputLinkBuffer")

@@ -1015,8 +1015,9 @@ void configureRXLinkBuffer(const RPCMsg *request, RPCMsg *response)
 void configureTXLinkBuffer(const RPCMsg *request, RPCMsg *response)
 {
 	PARAM_WORD(CAP_nPB);
-
+	
 	if (!write_word(C_LINK_BUFFER_TX_CAP_nPB, CAP_nPB)) RETURN_ERROR("Unable to access registers");	
+
 
 	response->set_word("result", 1);
 }
@@ -1024,7 +1025,7 @@ void configureTXLinkBuffer(const RPCMsg *request, RPCMsg *response)
 // virtual bool reqRXLinkBufferCapture(void);
 void reqRXLinkBufferCapture(const RPCMsg *request, RPCMsg *response)
 {
-
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to reqRXLinkBufferCapture  "));
 	if (!write_word(C_LINK_BUFFER_RX_CAP_ARM, 0)) RETURN_ERROR("Unable to access registers");	
 	if (!write_word(C_LINK_BUFFER_RX_CAP_ARM, 1)) RETURN_ERROR("Unable to access registers");	
 	if (!write_word(C_LINK_BUFFER_RX_CAP_ARM, 0)) RETURN_ERROR("Unable to access registers");	
@@ -1035,7 +1036,7 @@ void reqRXLinkBufferCapture(const RPCMsg *request, RPCMsg *response)
 // virtual bool reqTXLinkBufferCapture(void);
 void reqTXLinkBufferCapture(const RPCMsg *request, RPCMsg *response)
 {
-
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to reqTXLinkBufferCapture  "));
 	if (!write_word(C_LINK_BUFFER_TX_CAP_ARM, 0)) RETURN_ERROR("Unable to access registers");	
 	if (!write_word(C_LINK_BUFFER_TX_CAP_ARM, 1)) RETURN_ERROR("Unable to access registers");	
 	if (!write_word(C_LINK_BUFFER_TX_CAP_ARM, 0)) RETURN_ERROR("Unable to access registers");	
@@ -1099,6 +1100,7 @@ void getInputLinkBuffer(const RPCMsg *request, RPCMsg *response)
 	PARAM_WORD(link);
 	VALIDATE_INPUT_LINK(link);
 	std::vector<uint32_t> data;
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to getInputLinkBuffer  "));
 	if (!bram_read(BRAM_CH_ADDR(INPUT_BRAM_0, link), 1024, data))
 		RETURN_ERROR("Unable to access BRAM");
 	response->set_word_array("result", data);
@@ -1113,6 +1115,7 @@ void setInputLinkBuffer(const RPCMsg *request, RPCMsg *response)
 	std::vector<uint32_t> selectedData = request->get_word_array("selectedData");
 	VALIDATE_INPUT_LINK(link);
 	VALIDATE_RANGE(selectedData.size(), 1024, 1024);
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to setInputLinkBuffer  "));
 	if (!bram_write_verify(BRAM_CH_ADDR(INPUT_BRAM_0, link), selectedData))
 		RETURN_ERROR("Unable to access BRAM");
 	response->set_word("result", 1);
@@ -1125,7 +1128,20 @@ void getOutputLinkBuffer(const RPCMsg *request, RPCMsg *response)
 	VALIDATE_OUTPUT_LINK(link);
 
 	std::vector<uint32_t> selectedData;
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to getOutputLinkBuffer  "));
 	if (!bram_read(BRAM_CH_ADDR(OUTPUT_BRAM_0, link), 1024, selectedData))
+		RETURN_ERROR("Unable to acccess BRAM");
+	response->set_word_array("result", selectedData);
+}
+
+void getOutput10GLinkBuffer(const RPCMsg *request, RPCMsg *response)
+{
+	PARAM_WORD(link);
+	VALIDATE_OUTPUT_LINK(link);
+
+	std::vector<uint32_t> selectedData;
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to setOutput10GLinkBuffer  "));
+	if (!bram_read(BRAM_CH_ADDR(OUTPUT_BRAM_10G_0, link), 1024, selectedData))
 		RETURN_ERROR("Unable to acccess BRAM");
 	response->set_word_array("result", selectedData);
 }
@@ -1139,6 +1155,7 @@ void setOutputLinkBuffer(const RPCMsg *request, RPCMsg *response)
 	std::vector<uint32_t> selectedData = request->get_word_array("selectedData");
 	VALIDATE_INPUT_LINK(link);
 	VALIDATE_RANGE(selectedData.size(), 1024, 1024);
+	LOGGER->log_message(LogManager::INFO, stdsprintf("Connected to setOutputLinkBuffer  "));
 	if (!bram_write_verify(BRAM_CH_ADDR(OUTPUT_BRAM_0, link), selectedData))
 		RETURN_ERROR("Unable to access BRAM");
 	response->set_word("result", 1);
@@ -1182,7 +1199,7 @@ void getModuleBuildInfo(const RPCMsg *request, RPCMsg *response)
 }
 
 extern "C" {
-	const char *module_version_key = "UCT2016Layer1 v1.1.0";
+	const char *module_version_key = "S3_Summ v1.1.0";
 	int module_activity_color = 5;
 	void module_init(ModuleManager *modmgr)
 	
@@ -1194,64 +1211,65 @@ extern "C" {
 			return;
 		}
 
-		modmgr->register_method("UCT2016Layer1", "ping", ping);
-		modmgr->register_method("UCT2016Layer1", "setRunNumber", setRunNumber);
-		modmgr->register_method("UCT2016Layer1", "hardReset", hardReset);
-		modmgr->register_method("UCT2016Layer1","setDAQConfig", setDAQConfig);
-		modmgr->register_method("UCT2016Layer1","getDAQStatus", getDAQStatus);
-		modmgr->register_method("UCT2016Layer1", "getFWInfo", getFWInfo);
+		modmgr->register_method("S3_Summ", "ping", ping);
+		modmgr->register_method("S3_Summ", "setRunNumber", setRunNumber);
+		modmgr->register_method("S3_Summ", "hardReset", hardReset);
+		modmgr->register_method("S3_Summ","setDAQConfig", setDAQConfig);
+		modmgr->register_method("S3_Summ","getDAQStatus", getDAQStatus);
+		modmgr->register_method("S3_Summ", "getFWInfo", getFWInfo);
 		
-		modmgr->register_method("UCT2016Layer1","alignTTCDecoder", alignTTCDecoder);
+		modmgr->register_method("S3_Summ","alignTTCDecoder", alignTTCDecoder);
 
-		modmgr->register_method("UCT2016Layer1","setInputLinkTowerMask", setInputLinkTowerMask);
-		modmgr->register_method("UCT2016Layer1","getInputLinkTowerMask", getInputLinkTowerMask);
-		modmgr->register_method("UCT2016Layer1", "setInputLinkAlignmentMask", setInputLinkAlignmentMask);
-		modmgr->register_method("UCT2016Layer1", "setTMTCycle", setTMTCycle);
+		modmgr->register_method("S3_Summ","setInputLinkTowerMask", setInputLinkTowerMask);
+		modmgr->register_method("S3_Summ","getInputLinkTowerMask", getInputLinkTowerMask);
+		modmgr->register_method("S3_Summ", "setInputLinkAlignmentMask", setInputLinkAlignmentMask);
+		modmgr->register_method("S3_Summ", "setTMTCycle", setTMTCycle);
 
-		modmgr->register_method("UCT2016Layer1", "alignInputLinks", alignInputLinks);
-		modmgr->register_method("UCT2016Layer1", "alignOutputLinks", alignOutputLinks);
-		modmgr->register_method("UCT2016Layer1", "resetInputLinkChecksumErrorCounters", resetInputLinkChecksumErrorCounters);
-		modmgr->register_method("UCT2016Layer1", "resetInputLinkBX0ErrorCounters", resetInputLinkBX0ErrorCounters);
-		modmgr->register_method("UCT2016Layer1", "getInputLinkAlignmentStatus", getInputLinkAlignmentStatus);
-		modmgr->register_method("UCT2016Layer1", "getInputLinkStatus", getInputLinkStatus);
-		modmgr->register_method("UCT2016Layer1", "resetInputLinkDecoders", resetInputLinkDecoders);
-		modmgr->register_method("UCT2016Layer1", "getTTCStatus", getTTCStatus);
-		modmgr->register_method("UCT2016Layer1", "getTTCBGoCmdCnt", getTTCBGoCmdCnt);
+		modmgr->register_method("S3_Summ", "alignInputLinks", alignInputLinks);
+		modmgr->register_method("S3_Summ", "alignOutputLinks", alignOutputLinks);
+		modmgr->register_method("S3_Summ", "resetInputLinkChecksumErrorCounters", resetInputLinkChecksumErrorCounters);
+		modmgr->register_method("S3_Summ", "resetInputLinkBX0ErrorCounters", resetInputLinkBX0ErrorCounters);
+		modmgr->register_method("S3_Summ", "getInputLinkAlignmentStatus", getInputLinkAlignmentStatus);
+		modmgr->register_method("S3_Summ", "getInputLinkStatus", getInputLinkStatus);
+		modmgr->register_method("S3_Summ", "resetInputLinkDecoders", resetInputLinkDecoders);
+		modmgr->register_method("S3_Summ", "getTTCStatus", getTTCStatus);
+		modmgr->register_method("S3_Summ", "getTTCBGoCmdCnt", getTTCBGoCmdCnt);
 
 
-		modmgr->register_method("UCT2016Layer1", "getInputLinkLUT", getInputLinkLUT);
-		modmgr->register_method("UCT2016Layer1", "setInputLinkLUT", setInputLinkLUT);
+		modmgr->register_method("S3_Summ", "getInputLinkLUT", getInputLinkLUT);
+		modmgr->register_method("S3_Summ", "setInputLinkLUT", setInputLinkLUT);
 
-		modmgr->register_method("UCT2016Layer1", "getInputLinkLUT2S", getInputLinkLUT2S);
-		modmgr->register_method("UCT2016Layer1", "setInputLinkLUT2S", setInputLinkLUT2S);
+		modmgr->register_method("S3_Summ", "getInputLinkLUT2S", getInputLinkLUT2S);
+		modmgr->register_method("S3_Summ", "setInputLinkLUT2S", setInputLinkLUT2S);
 		
-		modmgr->register_method("UCT2016Layer1", "getInputLinkLUTHcalFb", getInputLinkLUTHcalFb);
-		modmgr->register_method("UCT2016Layer1", "setInputLinkLUTHcalFb", setInputLinkLUTHcalFb);
+		modmgr->register_method("S3_Summ", "getInputLinkLUTHcalFb", getInputLinkLUTHcalFb);
+		modmgr->register_method("S3_Summ", "setInputLinkLUTHcalFb", setInputLinkLUTHcalFb);
 		
 
 
 
-		modmgr->register_method("UCT2016Layer1","testUptime", testUptime);
-		modmgr->register_method("UCT2016Layer1","setConfiguration", setConfiguration);
-		modmgr->register_method("UCT2016Layer1","getConfiguration", getConfiguration);
+		modmgr->register_method("S3_Summ","testUptime", testUptime);
+		modmgr->register_method("S3_Summ","setConfiguration", setConfiguration);
+		modmgr->register_method("S3_Summ","getConfiguration", getConfiguration);
 		
-		modmgr->register_method("UCT2016Layer1", "getInputLinkBuffer", getInputLinkBuffer);
-		modmgr->register_method("UCT2016Layer1", "setInputLinkBuffer", setInputLinkBuffer);
-		modmgr->register_method("UCT2016Layer1", "getOutputLinkBuffer", getOutputLinkBuffer);
-		modmgr->register_method("UCT2016Layer1", "setOutputLinkBuffer", setOutputLinkBuffer);
+		modmgr->register_method("S3_Summ", "getInputLinkBuffer", getInputLinkBuffer);
+		modmgr->register_method("S3_Summ", "setInputLinkBuffer", setInputLinkBuffer);
+		modmgr->register_method("S3_Summ", "getOutputLinkBuffer", getOutputLinkBuffer);
+		modmgr->register_method("S3_Summ", "getOutput10GLinkBuffer", getOutput10GLinkBuffer);
+		modmgr->register_method("S3_Summ", "setOutputLinkBuffer", setOutputLinkBuffer);
 		
-		modmgr->register_method("UCT2016Layer1", "setTxPower", setTxPower);
-//		modmgr->register_method("UCT2016Layer1", "configRefClk", configRefClk);
-//		modmgr->register_method("UCT2016Layer1", "configMGTs", configMGTs);
+		modmgr->register_method("S3_Summ", "setTxPower", setTxPower);
+//		modmgr->register_method("S3_Summ", "configRefClk", configRefClk);
+//		modmgr->register_method("S3_Summ", "configMGTs", configMGTs);
 
-//		modmgr->register_method("UCT2016Layer1", "algoReset", algoReset);
-// 	 	modmgr->register_method("UCT2016Layer1", "maskRXLink", maskRXLink);
-//		modmgr->register_method("UCT2016Layer1", "alignInputLinks", alignInputLinks);
-		modmgr->register_method("UCT2016Layer1", "configureRXLinkBuffer", configureRXLinkBuffer);
-		modmgr->register_method("UCT2016Layer1", "configureTXLinkBuffer", configureTXLinkBuffer);
-		modmgr->register_method("UCT2016Layer1", "reqRXLinkBufferCapture", reqRXLinkBufferCapture);
-		modmgr->register_method("UCT2016Layer1", "reqTXLinkBufferCapture", reqTXLinkBufferCapture);
-		modmgr->register_method("UCT2016Layer1", "getModuleBuildInfo", getModuleBuildInfo);
+//		modmgr->register_method("S3_Summ", "algoReset", algoReset);
+// 	 	modmgr->register_method("S3_Summ", "maskRXLink", maskRXLink);
+//		modmgr->register_method("S3_Summ", "alignInputLinks", alignInputLinks);
+		modmgr->register_method("S3_Summ", "configureRXLinkBuffer", configureRXLinkBuffer);
+		modmgr->register_method("S3_Summ", "configureTXLinkBuffer", configureTXLinkBuffer);
+		modmgr->register_method("S3_Summ", "reqRXLinkBufferCapture", reqRXLinkBufferCapture);
+		modmgr->register_method("S3_Summ", "reqTXLinkBufferCapture", reqTXLinkBufferCapture);
+		modmgr->register_method("S3_Summ", "getModuleBuildInfo", getModuleBuildInfo);
 		}
 	}
 }	

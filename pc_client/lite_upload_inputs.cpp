@@ -75,23 +75,23 @@ int main(int argc, char *argv[]) {
 
    std::vector<CTP7AlgoClient*> cards;
 
-	int phi;
+/*	int phi;
     std::cout << "Enter the phi for connection: ";
     std::cin >> phi;
 
 	std::string filename;
     std::cout << "Enter the filename: ";
-    std::cin >> filename;
+    std::cin >> filename;*/
 
 	CTP7AlgoClient * card;
 
 	try
 	{
-		card = new CTP7AlgoClient(phi, "CTP7Map.xml");
+		card = new CTP7AlgoClient(0, "CTP7Map.xml");
 	}
 	catch (std::runtime_error &e)
 	{
-        std::cout << "Couldnt connect to phi: " << phi <<  e.what() << std::endl;
+        std::cout << "Couldnt connect to phi: " << 0 <<  e.what() << std::endl;
         return -1;
 	}
 
@@ -99,11 +99,11 @@ int main(int argc, char *argv[]) {
 
 	try
 	{
-		input_data = load_file( (data_path + "/" +  filename).c_str()   );
+		input_data = load_file( (data_path + "/" +  argv[1]).c_str()   );
 	} 
 	catch (std::runtime_error &e)
 	{
-        std::cout << "Error loading link data for phi " <<  phi <<  e.what() << std::endl;
+        std::cout << "Error loading link data for phi " <<  0 <<  e.what() << std::endl;
 		return -1 ;
 	}
 
@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
              return -1;
         }
 	}
-
+	  std::cout << "upload done "  << std::endl;
 	return 0;
 }
 

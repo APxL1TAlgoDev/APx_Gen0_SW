@@ -1,0 +1,16 @@
+This directory contains an rpcsvc developer package.
+
+These files are a part of the rpcsvc project, may change in future updates, and most should not be changed locally.
+
+--- RPCSVC VERSION INFORMATION ---
+f89ced3 Use select calls with internal timeout for rpcsvc communications.
+
+---- PACKAGE FILE LIST ---
+./libwiscrpcsvc.cpp
+./Makefile
+./rpcmsg.proto
+./RPCSVC_MANIFEST
+./rpctest.cpp
+./wiscRPCMsg.cpp
+./wiscRPCMsg.h
+./wiscrpcsvc.h

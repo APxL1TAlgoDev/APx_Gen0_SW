@@ -1,6 +1,6 @@
 CCOPTS = -fPIC -ggdb
 
-all: lib  download_inputs download_outputs upload_inputs upload_outputs  card_config layer1_config layer2_config
+all: lib  download_inputs lite_inputs download_10Ginputs lite_10Ginputs download_outputs lite_upload upload_inputs upload_outputs  card_config layer1_config layer2_config
 
 lib: libCTP7AlgoClient.so
 
@@ -13,12 +13,23 @@ layer1_config: layer1_config.cpp libCTP7AlgoClient.so CTP7AlgoClient.hh rpcsvc_c
 layer2_config: layer2_config.cpp libCTP7AlgoClient.so CTP7AlgoClient.hh rpcsvc_client_dev/wiscrpcsvc.h
 	g++ $(CCOPTS) -o $@ $< -I. -L. -lCTP7AlgoClient -Irpcsvc_client_dev -Lrpcsvc_client_dev -lwiscrpcsvc
 
+lite_inputs: lite_download_inputs.cpp libCTP7AlgoClient.so CTP7AlgoClient.hh rpcsvc_client_dev/wiscrpcsvc.h
+	g++ $(CCOPTS) -o $@ $< -I. -L. -lCTP7AlgoClient -Irpcsvc_client_dev -Lrpcsvc_client_dev -lwiscrpcsvc
+
 download_inputs: download_inputs.cpp libCTP7AlgoClient.so CTP7AlgoClient.hh rpcsvc_client_dev/wiscrpcsvc.h
+	g++ $(CCOPTS) -o $@ $< -I. -L. -lCTP7AlgoClient -Irpcsvc_client_dev -Lrpcsvc_client_dev -lwiscrpcsvc
+
+lite_10Ginputs: lite_download_10Ginputs.cpp libCTP7AlgoClient.so CTP7AlgoClient.hh rpcsvc_client_dev/wiscrpcsvc.h
+	g++ $(CCOPTS) -o $@ $< -I. -L. -lCTP7AlgoClient -Irpcsvc_client_dev -Lrpcsvc_client_dev -lwiscrpcsvc
+
+download_10Ginputs: download_10Glink_inputs.cpp libCTP7AlgoClient.so CTP7AlgoClient.hh rpcsvc_client_dev/wiscrpcsvc.h
 	g++ $(CCOPTS) -o $@ $< -I. -L. -lCTP7AlgoClient -Irpcsvc_client_dev -Lrpcsvc_client_dev -lwiscrpcsvc
 
 download_outputs: download_outputs.cpp libCTP7AlgoClient.so CTP7AlgoClient.hh rpcsvc_client_dev/wiscrpcsvc.h
 	g++ $(CCOPTS) -o $@ $< -I. -L. -lCTP7AlgoClient -Irpcsvc_client_dev -Lrpcsvc_client_dev -lwiscrpcsvc
 
+lite_upload: lite_upload_inputs.cpp libCTP7AlgoClient.so CTP7AlgoClient.hh rpcsvc_client_dev/wiscrpcsvc.h
+	g++ $(CCOPTS) -o $@ $< -I. -L. -lCTP7AlgoClient -Irpcsvc_client_dev -Lrpcsvc_client_dev -lwiscrpcsvc
 upload_inputs: upload_inputs.cpp libCTP7AlgoClient.so CTP7AlgoClient.hh rpcsvc_client_dev/wiscrpcsvc.h
 	g++ $(CCOPTS) -o $@ $< -I. -L. -lCTP7AlgoClient -Irpcsvc_client_dev -Lrpcsvc_client_dev -lwiscrpcsvc
 
@@ -46,7 +57,7 @@ client_dev.tbz2:
 .SECONDARY: client_dev.tbz2
 
 clean:
-	rm -rf rpcsvc_client_dev/ layer1_config layer2_config card_config download_inputs download_outputs upload_inputs  data/real_inputs.txt testapp *.so *.o
+	rm -rf rpcsvc_client_dev/ layer1_config layer2_config card_config download_inputs lite_inputs download_10Ginputs lite_10Ginputs  download_outputs lite_upload upload_inputs  testapp *.so *.o
 
 distclean: clean
 	rm -f client_dev.tbz2

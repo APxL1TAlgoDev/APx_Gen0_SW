@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
          
 	std::vector<CTP7AlgoClient*> cards;
 
-	int phi;
+	/*int phi;
     std::cout << "Enter the phi for connection: ";
     std::cin >> phi;
 
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 
 	std::string filename;
     std::cout << "Enter the filename: ";
-    std::cin >> filename;
+    std::cin >> filename;*/
 
 	
 
@@ -40,17 +40,17 @@ int main(int argc, char *argv[])
 
 	try
 	{
-		card = new CTP7AlgoClient(phi, "CTP7Map.xml");
+		card = new CTP7AlgoClient(0, "CTP7Map.xml");
 	}
 	catch (std::runtime_error &e)
 	{
-        std::cout << "Couldnt connect to phi: " << phi <<  e.what() << std::endl;
+        std::cout << "Couldnt connect to phi: " << 0 <<  e.what() << std::endl;
         return -1;
 	}
 	
 	// Request RT buffer capture
-	if (buff_cap_yn==1)
-	card->reqRXLinkBufferCapture();
+	//if (buff_cap_yn==1)
+	//card->reqRXLinkBufferCapture();
 
 	std::map<int, std::vector<uint32_t> > input_link_data;
 
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
         }
 	}
 	
-	FILE *fd = fopen((data_path + "/" +  filename).c_str(), "w");
+	FILE *fd = fopen((data_path + "/" +  argv[1]).c_str(), "w");
 	if (!fd)
 	{
 		printf("Error writing output file.\n");

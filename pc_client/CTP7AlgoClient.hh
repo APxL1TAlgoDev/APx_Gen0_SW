@@ -55,10 +55,11 @@ public:
 
 
 	virtual bool getInputLinkBuffer( int link, std::vector<uint32_t> &selectedData);
-        virtual bool setInputLinkBuffer( int link, const std::vector<uint32_t> &selectedData);
+    virtual bool setInputLinkBuffer( int link, const std::vector<uint32_t> &selectedData);
 
 
 	virtual bool getOutputLinkBuffer( int link, std::vector<uint32_t> &data);
+	virtual bool getOutput10GLinkBuffer( int link, std::vector<uint32_t> &data);
 	virtual bool setOutputLinkBuffer( int link, const std::vector<uint32_t> &data); // This function is for testing purpose only
 
 

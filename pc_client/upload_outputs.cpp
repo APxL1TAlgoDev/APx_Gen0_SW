@@ -35,7 +35,7 @@ std::map<int, input_data_t> load_file(std::string path)
 	std::map<int, input_data_t> input_data;
 
 	uint64_t value64;
-	uint64_t value32;
+	uint64_t value32,value32_data;
 
 
 	std::string dummyLine;
@@ -46,19 +46,14 @@ std::map<int, input_data_t> load_file(std::string path)
 	getline(infile, dummyLine);
 
 	// Read input data from the file
-	for (int idx = 0; idx < 512; idx++)
+	for (int idx = 0; idx < 1024; idx++)
 	{
-		infile >> std::hex >> value64;
+		infile >> std::hex >> value32;
 
-		for (int i = 0; i < 48; i++)
+		for (int i = 0; i < 1; i++)
 		{
-			infile >> std::hex >> value64;
-                        
-			value32 = uint32_t(value64 & 0xFFFFFFFF);
-			input_data[i].data.push_back(value32);
-
-			value32 = (value64 >> 32);
-			input_data[i].data.push_back(value32);
+			infile >> std::hex >> value32_data;
+			input_data[i].data.push_back(value32_data);
 		}
 	}
 
@@ -71,7 +66,13 @@ int main(int argc, char *argv[]) {
 
    std::vector<CTP7AlgoClient*> cards;
 
-	int phi = atoi(argv[1]);
+	int phi;
+    std::cout << "Enter the phi for connection: ";
+    std::cin >> phi;
+
+	std::string filename;
+    std::cout << "Enter the filename: ";
+    std::cin >> filename;
 
 	CTP7AlgoClient * card;
 
@@ -85,11 +86,11 @@ int main(int argc, char *argv[]) {
         return -1;
 	}
 
-	std::map<int, input_data_t> input_data;
+	std::map<int, input_data_t> output_data;
 
 	try
 	{
-		input_data = load_file( (data_path + "/" +  argv[2]).c_str()   );
+		output_data = load_file( (data_path + "/" +  filename).c_str()   );
 	} 
 	catch (std::runtime_error &e)
 	{
@@ -97,9 +98,9 @@ int main(int argc, char *argv[]) {
 		return -1 ;
 	}
 
-	for (int link = 0; link < 48; link++)
+	for (int link = 0; link < 1; link++)
 	{
-		rc = card->setOutputLinkBuffer(link, input_data[link].data);
+		rc = card->setOutputLinkBuffer(link, output_data[link].data);
         if (rc == false) {
              std::cout << "setOutputLinkBuffer fails for link " << link << std::endl;
              return -1;

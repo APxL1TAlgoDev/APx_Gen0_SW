@@ -6,7 +6,6 @@
 
 #include <stdexcept>
 #include <stdio.h>
-#include <iostream>
 #include <fstream>
 #include <stdlib.h>
 #include <pthread.h>
@@ -22,48 +21,34 @@ int main(int argc, char *argv[])
      bool rc; // RPC return code
          
 	std::vector<CTP7AlgoClient*> cards;
-
-	int phi;
-    std::cout << "Enter the phi for connection: ";
-    std::cin >> phi;
-
-    int buff_cap_yn;
-    std::cout << "Enter 1 to capture a buffer, or 0 otherwise: ";
-    std::cin >> buff_cap_yn;
-
-	std::string filename;
-    std::cout << "Enter the filename: ";
-    std::cin >> filename;
-
+    
 	CTP7AlgoClient * card;
 
 	try
 	{
-		card = new CTP7AlgoClient(phi, "CTP7Map.xml");
+		card = new CTP7AlgoClient(0, "CTP7Map.xml");
 	}
 	catch (std::runtime_error &e)
 	{
-        std::cout << "Couldnt connect to phi: " << phi <<  e.what() << std::endl;
+        std::cout << "Couldnt connect to phi: " << 0 <<  e.what() << std::endl;
         return -1;
 	}
-
-	// Request RT buffer capture
-	if (buff_cap_yn==1)
-	card->reqTXLinkBufferCapture();
+	
 
 	std::map<int, std::vector<uint32_t> > output_link_data;
 
-	for (int link = 0; link < 1; link++)
+	for (int link = 0; link <12; link++)
 	{
+		//printf("In the loop %d.\n",link);
 		// download TX BRAMs
-		rc = card->getOutputLinkBuffer(link, output_link_data[link]);
+		rc = card->getOutput10GLinkBuffer(link, output_link_data[link]);
         if (rc == false) {
-              std::cout << "getOutputLinkBuffer fails for link " << link << std::endl;
+              std::cout << "getOutput LinkBuffer fails for link " << link << std::endl;
               return -1;
         }
 	}
 	
-	FILE *fd = fopen((data_path + "/" +  filename).c_str(), "w");
+	FILE *fd = fopen((data_path + "/" +  argv[1]).c_str(), "w");
 	if (!fd)
 	{
 		printf("Error writing output file.\n");
@@ -71,26 +56,26 @@ int main(int argc, char *argv[])
 	}
 
 	fprintf(fd, "===================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================== \n");
-	fprintf(fd, "WordCnt             LINK_00               LINK_01                                        \n");
-	fprintf(fd, "#BeginData\n");
+        //fprintf(fd, "WordCnt             LINK_00               LINK_01               LINK_02               LINK_03               LINK_04               LINK_05               LINK_06               LINK_07               LINK_08               LINK_09               LINK_10               LINK_11               LINK_12               LINK_13               LINK_14               LINK_15               LINK_16               LINK_17               LINK_18               LINK_19               LINK_20               LINK_21               LINK_22               LINK_23               LINK_24               LINK_25               LINK_26               LINK_27               LINK_28               LINK_29               LINK_30               LINK_31               LINK_32               LINK_33               LINK_34               LINK_35              \n");
+        fprintf(fd, "WordCnt      LINK_00      LINK_01      LINK_02      LINK_03      LINK_04      LINK_05      LINK_06      LINK_07      LINK_08      LINK_09      LINK_10      LINK_11      LINK_12      \n");
+		fprintf(fd, "#BeginData\n");
 
+	
 	uint32_t word32_lsw, word32_msw;
 	uint64_t word64;
 
 	for (int word = 0; word < 1024; word++)
 	{
-		fprintf(fd, "0x%04x   ", word);
-
-		for (int link = 0; link < 1; link++)
+		fprintf(fd, "0x%04x       ", word);
+		for (int link = 0; link < 12; link++)
 		{
 		         word32_lsw = output_link_data[link][word];
-			//word32_lsw = output_link_data[link][word*2];
-			//word32_msw = output_link_data[link][word*2+1];
-
-			//word64 = word32_lsw;
-			//word64 |= (uint64_t)word32_msw << 32;
-
-			fprintf(fd, "0x%08llx    ", word32_lsw);
+			
+			//printf("Before writing data to file %d %d\n",link,word);
+			//if (word32_lsw !=0x000000bc && word32_lsw !=0x000000f7 && word32_lsw !=0x00000000){ 
+			fprintf(fd, "0x%08x  ", word32_lsw);
+			//}
+			
 		}
 		fprintf(fd, "\n");
 	}

@@ -1,0 +1,19 @@
+This directory contains an rpcsvc developer package.
+
+These files are a part of the rpcsvc project, may change in future updates, and most should not be changed locally.
+
+--- RPCSVC VERSION INFORMATION ---
+f89ced3 Use select calls with internal timeout for rpcsvc communications.
+
+---- PACKAGE FILE LIST ---
+./LockTools.h
+./LogManager.h
+./Makefile
+./memory.cpp
+./moduleapi.h
+./ModuleManager.h
+./optical.cpp
+./README.md
+./RPCSVC_MANIFEST
+./rpctest.cpp
+./wiscRPCMsg.h
